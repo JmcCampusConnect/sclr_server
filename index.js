@@ -5,12 +5,12 @@ const connectDB = require('./config/db')
 
 // -----------------------------------------------------------------------------------------------------------------
 
-// To Load Environment Variables from .env to Application
+// To load environment variables from .env to application
 
 dotenv.config({ quiet: true });
 
 const app = express();
-app.use(express.json());
+app.use(express.json()); 
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,
