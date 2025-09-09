@@ -1,7 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const connectDB = require('./config/db')
+const connectDB = require('./config/db');
+
+// -----------------------------------------------------------------------------------------------------------------
+
+// Routes Path
+
+const registerRoutes = require('./routes/registerRoute');
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -31,3 +37,7 @@ app.listen(PORT, () => {
 })
 
 // -----------------------------------------------------------------------------------------------------------------
+
+// Routes Link
+
+app.use('/api/register', registerRoutes)
