@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { registerApplicationSave } = require('../controller/registerController');
+const { registerApplicationSave, checkRegisterNo } = require('../controller/registerController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -20,6 +20,7 @@ const upload = multer({ storage });
 // -----------------------------------------------------------------------------------------------------------------
 
 router.post('/application', upload.single('jamathLetter'), registerApplicationSave);
+router.post('/checkRegisterNo', checkRegisterNo);
 
 // -----------------------------------------------------------------------------------------------------------------
 

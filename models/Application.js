@@ -13,8 +13,8 @@ const applicationSchema = new mongoose.Schema({
     religion: { type: String, required: true },
     hasAppliedOtherScholarships: { type: String },
     lastStudiedInstitution: { type: String },
-    yearOfPassing: { type: Number, required: true },
-    lastStudiedInstitutionPercentage: { type: Number, required: true },
+    yearOfPassing: { type: Number  },
+    lastStudiedInstitutionPercentage: { type: Number },
     // Class Attendance
     classAttendancePercentage: { type: Number, required: true, default: -1 },
     classAttendanceRemark: { type: String, required: true, default: 'Good' },
