@@ -1,7 +1,19 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const dotenv = require('dotenv');
+
+// -----------------------------------------------------------------------------------------------------------------
+
+// Imported Functions
+
 const connectDB = require('./config/db');
+
+// -----------------------------------------------------------------------------------------------------------------
+
+// Imported Model
+
+const AcademicModel = require('./models/Academic');
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -16,7 +28,7 @@ const registerRoutes = require('./routes/registerRoute');
 dotenv.config({ quiet: true });
 
 const app = express();
-app.use(express.json()); 
+app.use(express.json());
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,
@@ -25,6 +37,8 @@ app.use(cors({
 }))
 
 connectDB();
+
+app.use('/zamathfiles', express.static(path.join(__dirname, 'zamathfiles')));
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -41,3 +55,5 @@ app.listen(PORT, () => {
 // Routes Link
 
 app.use('/api/register', registerRoutes)
+
+// -----------------------------------------------------------------------------------------------------------------

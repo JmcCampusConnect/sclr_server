@@ -15,8 +15,12 @@ const storage = multer.diskStorage({
     }
 })
 
+const upload = multer({ storage });
+
 // -----------------------------------------------------------------------------------------------------------------
 
-router.post('/application', registerApplicationSave);
+router.post('/application', upload.single('jamathLetter'), registerApplicationSave);
+
+// -----------------------------------------------------------------------------------------------------------------
 
 module.exports = router
