@@ -20,6 +20,7 @@ const AcademicModel = require('./models/Academic');
 // Routes Path
 
 const registerRoutes = require('./routes/registerRoute');
+const userRoutes = require('./routes/userRoute');
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -54,6 +55,7 @@ app.listen(PORT, () => {
 
 // Routes Link
 
-app.use('/api/register', registerRoutes)
+app.use('/api/register', registerRoutes);
+app.use('/api/user', userRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
