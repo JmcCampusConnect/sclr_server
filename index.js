@@ -73,40 +73,38 @@ const generateToken = (userId) => { return jwt.sign({ userId }, process.env.SECR
 
 // For user login
 
-app.post('/api/user/login', async (req, res) => {
+app.post('/user/login', async (req, res) => {
 
     try {
 
         const { userId, userPassword } = req.body;
 
         let userType = null;
-        let user = null
+        let user = null;
 
-        studentUser = await StudentModel.findOne({ registerNo: userId })
-        staffUser = await StaffModel.findOne({ staffId: userId })
+        const studentUser = await StudentModel.findOne({ registerNo: userId });
+        const staffUser = await StaffModel.findOne({ staffId: userId });
 
         if (studentUser) {
-            userType = 'Student'
+            userType = 'Student';
             user = studentUser;
-        }
-        else if (staffUser) {
+        } else if (staffUser) {
             userType = 'Staff';
             user = staffUser;
+        } else {
+            return res.status(404).json({ status: 404, message: 'User not found' });
         }
-        else {
-            return res.status(404).json({ status: 404, message: 'User not found' })
-        }
 
-        const match = userPassword === user.password
-        if (!match) { return res.status(400).json({ status: 400, message: 'Invalid credentials' }) }
+        const match = userPassword === user.password;
+        if (!match) return res.status(400).json({ status: 400, message: 'Invalid credentials' });
 
-        const token = generateToken(user._id);
+        const token = generateToken(user._id, userType === 'Student' ? 0 : user.role);
 
-        res.cookie("jwt", token, {
-            httpOnly: true,   // JS cannot read
-            secure: false,    // must be false for localhost (HTTP)
-            sameSite: "lax",  // strict/lax/cross-site — use lax for dev
-            maxAge: 60 * 60 * 1000,
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "Lax",
+            maxAge: 60 * 60 * 1000
         });
 
         return res.status(200).json({
@@ -115,10 +113,53 @@ app.post('/api/user/login', async (req, res) => {
                 userId: userType === 'Student' ? user.registerNo : user.staffId,
                 role: userType === 'Student' ? 0 : user.role
             }
-        })
+        });
 
     } catch (error) {
         console.error('Error during Login : ', error);
-        return res.status(500).json({ message: 'Internal Server Error' })
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
 })
+
+// -----------------------------------------------------------------------------------------------------------------
+
+// For user logout
+
+app.post('/api/user/logout', (req, res) => {
+    res.clearCookie("token");
+    return res.json({ message: "Logged out successfully" });
+})
+
+// -----------------------------------------------------------------------------------------------------------------
+
+// Protect Middleware
+
+const protect = (req, res, next) => {
+
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ message: "Not authenticated" });
+
+    try {
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        req.user = decoded;
+        next();
+    } catch {
+        return res.status(401).json({ message: "Invalid or expired token" });
+    }
+}
+
+// -----------------------------------------------------------------------------------------------------------------
+
+app.get("/user/profile", protect, (req, res) => {
+
+    return res.status(200).json({
+        status: 200,
+        user: {
+            userId: req.user.userId,
+            role: req.user.role,
+        },
+        message: "Authenticated",
+    })
+})
+
+// -----------------------------------------------------------------------------------------------------------------
