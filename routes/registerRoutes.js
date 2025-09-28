@@ -20,7 +20,7 @@ const upload = multer({ storage });
 // -----------------------------------------------------------------------------------------------------------------
 
 router.post('/application', upload.single('jamathLetter'), registerApplicationSave);
-router.post('/checkRegisterNo', checkRegisterNo);
+router.get('/checkRegisterNo', checkRegisterNo);
 
 // -----------------------------------------------------------------------------------------------------------------
 

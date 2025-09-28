@@ -4,7 +4,7 @@ const { currentAcademicYear } = require('../utils/commonFunctions');
 
 // -----------------------------------------------------------------------------------------------------------------
 
-// Application Save through Register Mode 
+// Application save through register application menu
 
 const registerApplicationSave = async (req, res) => {
 
@@ -30,11 +30,11 @@ const registerApplicationSave = async (req, res) => {
 
 // -----------------------------------------------------------------------------------------------------------------
 
-// To check whether a Register Number is exists or not
+// To check whether a register no is exists or not
 
 const checkRegisterNo = async (req, res) => {
 
-    const { registerNo } = req.body;
+    const { registerNo } = req.query;
 
     try {
         const student = await StudentModel.findOne({ registerNo });
