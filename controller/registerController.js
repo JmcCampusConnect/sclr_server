@@ -38,8 +38,8 @@ const checkRegisterNo = async (req, res) => {
 
     try {
         const student = await StudentModel.findOne({ registerNo });
-        if (student) { return res.json({ message: 'Already Applied' }) } 
-        else {return res.status(200).json({ success: true, message: "Allow to apply" })}
+        if (student) { return res.json({ message: 'Already Applied' }) }
+        else { return res.status(200).json({ success: true, message: "Allow to apply" }) }
     } catch (err) {
         console.error("Error in checking register number in Student Model for applying application : ", err);
         return res.status(500).json({ success: false, message: "Internal server error", error: err.message });
