@@ -25,6 +25,7 @@ const StaffModel = require('./models/Staff');
 
 const registerRoutes = require('./routes/registerRoutes');
 const studentRoutes = require('./routes/studentRoutes');
+const staffRoutes = require('./routes/staffRoutes');
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -62,6 +63,7 @@ app.listen(PORT, () => {
 
 app.use('/api/register', registerRoutes);
 app.use('/api/student', studentRoutes);
+app.use('/api/staff', staffRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
 
