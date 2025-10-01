@@ -63,7 +63,7 @@ app.listen(PORT, () => {
 
 app.use('/api/register', registerRoutes);
 app.use('/api/student', studentRoutes);
-app.use('/api/staff', staffRoutes);
+// app.use('/api/staff', staffRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ app.post('/user/login', async (req, res) => {
         }
 
         const match = userPassword === user.password;
-        if (!match) return res.status(400).json({ status: 400, message: 'Invalid credentials' });
+        if (!match) return res.status(400).json({ status: 400, message: 'Password does not match' });
 
         const token = generateToken(user._id, userType === 'Student' ? 0 : user.role);
 
