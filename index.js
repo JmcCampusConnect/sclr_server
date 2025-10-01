@@ -26,6 +26,7 @@ const StaffModel = require('./models/Staff');
 const registerRoutes = require('./routes/registerRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const staffRoutes = require('./routes/staffRoutes');
+const authRoutes = require("./routes/authRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -61,6 +62,7 @@ app.listen(PORT, () => {
 
 // Routes Link
 
+app.use("/auth", authRoutes);
 app.use('/api/register', registerRoutes);
 app.use('/api/student', studentRoutes);
 // app.use('/api/staff', staffRoutes);
@@ -74,6 +76,60 @@ const generateToken = (userId) => { return jwt.sign({ userId }, process.env.SECR
 // -----------------------------------------------------------------------------------------------------------------
 
 // For user login
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 app.post('/user/login', async (req, res) => {
 
