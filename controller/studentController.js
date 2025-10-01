@@ -35,8 +35,32 @@ const registerUser = async (req, res) => {
 
 // -----------------------------------------------------------------------------------------------------------------
 
+// To dispaly the details for current academic year in student dashboard
 
+const studentStatus = async (req, res) => {
+
+    const { registerNo } = req.query;
+
+    try {
+
+        const academicYear = await currentAcademicYear();
+        let applicant = await StudentModel.findOne({ registerNo })
+        let application = await ApplicationModel.findOne({ registerNo, academicYear });
+
+        if (application && applicant) {
+            const applicationObj = application.toObject();
+            const applicantObj = applicant.toObject();
+            const studentData = { ...applicantObj, ...applicationObj };
+            return res.json({ status: 200, student: studentData });
+        } else {
+            return res.json({ success: false, message: 'Applicantion does not exist' });
+        }
+    } catch (error) {
+        console.log('Error in fetching student data for student dashboard : ', error);
+        return res.status(500).json({ status: 500, message: 'An error occurred while fetching the student data' });
+    }
+}
 
 // -----------------------------------------------------------------------------------------------------------------
 
-module.exports = { registerUser }
+module.exports = { registerUser, studentStatus }

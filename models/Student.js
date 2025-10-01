@@ -25,6 +25,7 @@ const studentSchema = new mongoose.Schema({
     siblingsCount: { type: Number },
     siblingsOccupation: { type: String },
     siblingsIncome: { type: Number },
+    governSclr: { type: Number, required: true, default: 0, enum: [0, 1, 2] }
 }, { timestamps: true });
 
 module.exports = mongoose.model("student", studentSchema);

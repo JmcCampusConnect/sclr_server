@@ -11,9 +11,10 @@ const applicationSchema = new mongoose.Schema({
     specialCategory: { type: String, required: true },
     yearOfAdmission: { type: String, required: true },
     religion: { type: String, required: true },
+    sclrType: { type: String, required: true, default: 'Fresher', enum: ['Fresher', 'Renewal'] },
     hasAppliedOtherScholarships: { type: String },
     lastStudiedInstitution: { type: String },
-    yearOfPassing: { type: Number  },
+    yearOfPassing: { type: Number },
     lastStudiedInstitutionPercentage: { type: Number },
     // Class Attendance
     classAttendancePercentage: { type: Number, required: true, default: -1 },
