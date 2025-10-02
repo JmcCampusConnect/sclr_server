@@ -65,6 +65,6 @@ app.listen(PORT, () => {
 app.use("/auth", authRoutes);
 app.use('/api/register', registerRoutes);
 app.use('/api/student', studentRoutes);
-// app.use('/api/staff', staffRoutes);
+app.use('/api/staff', staffRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
