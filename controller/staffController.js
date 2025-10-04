@@ -1,4 +1,27 @@
 const ApplicationModel = require('../models/Application');
+const StaffModel = require('../models/Staff');
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Password Change for Staffs 
+
+const staffPasswordChange = async (req, res) => {
+
+    const { staffId, password } = req.body;
+
+    try {
+        const updatedStaff = await StaffModel.findOneAndUpdate(
+            { staffId },
+            { password: password },
+            { new: true }
+        )
+        if (!updatedStaff) { return res.status(404).json({ error: 'Staff not found' }) }
+        res.json(updatedStaff);
+    } catch (err) {
+        console.error('Error in updating password pf staff : ', err);
+        res.status(500).json({ error: 'Failed to update password' });
+    }
+}
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -84,4 +107,4 @@ const saveStuMark = async (req, res) => {
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { getStudentCoe, saveStuMark }
+module.exports = { getStudentCoe, saveStuMark, staffPasswordChange }

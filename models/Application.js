@@ -15,7 +15,7 @@ const applicationSchema = new mongoose.Schema({
     hasAppliedOtherScholarships: { type: String },
     lastStudiedInstitution: { type: String },
     yearOfPassing: { type: Number },
-    lastStudiedInstitutionPercentage: { type: Number },
+    lastStudiedInstitutionPercentage: { type: Number, default: -1 },
     // Class Attendance
     classAttendancePercentage: { type: Number, required: true, default: -1 },
     classAttendanceRemark: { type: String, required: true, default: 'Good' },
@@ -24,7 +24,7 @@ const applicationSchema = new mongoose.Schema({
     deeniyathMoralRemark: { type: String, required: true, default: 'Good' },
     // Academic performance
     semesterMarkPercentage: { type: Number, required: true, default: -1 },
-    semesterArrear: { type: Number, required: true, default: -1 },
+    semesterArrear: { type: Number, required: true, default: 0 },
     semesterGrade: { type: String, required: true, default: 'A' },
     semesterRemark: { type: String },
     jamathLetter: { type: String, required: true },
