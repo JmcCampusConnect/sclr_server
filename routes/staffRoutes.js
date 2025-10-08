@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { getStudentCoe, saveStuMark, staffPasswordChange } = require('../controller/staffController')
+const { getStudentCOE, saveStudentMark, staffPasswordChange, getStudentClassAttendance, saveClassAttendance } = require('../controller/staffController')
 
 // -----------------------------------------------------------------------------------------------------------------
 
-router.post('/studentsForCoe', getStudentCoe);
-router.post('/saveStudentMark', saveStuMark);
 router.put('/passwordChange', staffPasswordChange);
+router.post('/coe/students', getStudentCOE);
+router.post('/coe/saveStudentMark', saveStudentMark);
+router.post('/class/students', getStudentClassAttendance);
+router.post('/class/saveAttendance', saveClassAttendance);
 
 // -----------------------------------------------------------------------------------------------------------------
 

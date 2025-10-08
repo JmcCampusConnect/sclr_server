@@ -27,13 +27,13 @@ const staffPasswordChange = async (req, res) => {
 
 // Get student data for COE
 
-const getStudentCoe = async (req, res) => {
+const getStudentCOE = async (req, res) => {
 
     try {
 
         const condition = {
             $or: [
-                { lastStudiedInstitutionPercentage: null },
+                { lastStudiedInstitutionPercentage: -1 },
                 { lastStudiedInstitutionPercentage: { $exists: false } }
             ]
         }
@@ -68,7 +68,7 @@ const getStudentCoe = async (req, res) => {
 
 // Save student for COE
 
-const saveStuMark = async (req, res) => {
+const saveStudentMark = async (req, res) => {
 
     try {
 
@@ -107,4 +107,83 @@ const saveStuMark = async (req, res) => {
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { getStudentCoe, saveStuMark, staffPasswordChange }
+// Get student for class attendance ( JMCRAA, JMCRAS, JMCRAW )
+
+const getStudentClassAttendance = async (req, res) => {
+
+    const userId = req.body.userId;
+
+    const condition = (userId === "JMCRAA" ? "Aided" : userId === "JMCRAS" ? "SFM" : "SFW");
+
+    try {
+
+        const ac_year = await currentAcademicYear();
+        const staffData = await StaffModel.findOne({ staffId: userId });
+
+        const totalCount = await ApplicationModel.countDocuments({
+            programCategory: condition, academicYear: ac_year,
+        })
+
+        const notMarkedCount = await ApplicationModel.countDocuments({
+            programCategory: condition,
+            academicYear: ac_year,
+            classAttendancePercentage: -1,
+        });
+
+        const markedCount = totalCount - notMarkedCount;
+
+        const studentData = await ApplicationModel.find({
+            programCategory: condition,
+            academicYear: ac_year,
+            classAttendancePercentage: -1
+        });
+
+        res.status(200).json({
+            staffData: staffData,
+            studentData: studentData,
+            counts: {
+                totalApplications: totalCount,
+                completed: markedCount,
+                pending: notMarkedCount
+            }
+        })
+
+    } catch (err) {
+        console.log("Error getting staff data and counts for class attendacne : ", err);
+        res.status(500).json({ message: "Error fetching attendance data" });
+    }
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Save attendance for class attendance ( JMCRAA, JMCRAS, JMCRAW )
+
+const saveClassAttendance = async (req, res) => {
+
+    const { enteredData } = req.body;
+
+    try {
+
+        const ac_year = await currentAcademicYear();
+        const updatePromises = enteredData.map(stu =>
+            ApplicationModel.updateOne(
+                { registerNo: stu.regNo, academicYear: ac_year },
+                {
+                    $set: {
+                        classAttendancePercentage: stu.percentage,
+                        classAttendanceRemark: stu.remark
+                    }
+                }
+            ).exec()
+        )
+        await Promise.all(updatePromises);
+        res.status(200).json({ message: "Attendance updated successfully" });
+    } catch (error) {
+        console.error('Error in saving class attendance : ', error);
+        res.status(500).json({ message: "Error updating attendance" });
+    }
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+
+module.exports = { getStudentCOE, saveStudentMark, staffPasswordChange, getStudentClassAttendance, saveClassAttendance }

@@ -5,6 +5,7 @@ const studentSchema = new mongoose.Schema({
     name: { type: String, required: true },
     password: { type: String, required: true },
     yearOfAdmission: { type: String, required: true },
+    programCategory: { type: String, required: true },
     department: { type: String },
     section: { type: String },
     mobileNo: { type: String, required: true },
@@ -14,7 +15,7 @@ const studentSchema = new mongoose.Schema({
     state: { type: String },
     pinCode: { type: Number },
     hostelStatus: { type: String, enum: ['Yes', 'No'], default: 'No' },
-    governmentScholarship: { type: String, required: true, enum: ['Yes', 'No'], default: 'No' },
+    governmentScholarship: { type: Number, required: true, default: 0, enum: [0, 1, 2] },
     // Parents Details
     parentName: { type: String },
     parentNo: { type: String },
@@ -25,7 +26,6 @@ const studentSchema = new mongoose.Schema({
     siblingsCount: { type: Number },
     siblingsOccupation: { type: String },
     siblingsIncome: { type: Number },
-    governSclr: { type: Number, required: true, default: 0, enum: [0, 1, 2] }
 }, { timestamps: true });
 
 module.exports = mongoose.model("student", studentSchema);

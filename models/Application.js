@@ -26,8 +26,9 @@ const applicationSchema = new mongoose.Schema({
     semesterMarkPercentage: { type: Number, required: true, default: -1 },
     semesterArrear: { type: Number, required: true, default: 0 },
     semesterGrade: { type: String, required: true, default: 'A' },
-    semesterRemark: { type: String },
+    // Others
     jamathLetter: { type: String, required: true },
+    tutorVerification: { type: Number, required: true, default: 0, enum: [0, 1, 2] },
     applicationStatus: { type: Number, enum: [0, 1, 2], default: 0 },
     reason: { type: String, required: true, default: 'Your Application is under Process' },
     // Financial Status
