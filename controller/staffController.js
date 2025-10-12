@@ -1,5 +1,6 @@
 const ApplicationModel = require('../models/Application');
 const StaffModel = require('../models/Staff');
+const { currentAcademicYear } = require('../utils/commonFunctions')
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -27,6 +27,7 @@ const registerRoutes = require('./routes/registerRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const authRoutes = require("./routes/authRoutes");
+const manageRoutes = require("./routes/admin/manageRoutes")
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -66,5 +67,6 @@ app.use("/auth", authRoutes);
 app.use('/api/register', registerRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/staff', staffRoutes);
+app.use('/api/manage', manageRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
