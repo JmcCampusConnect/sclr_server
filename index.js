@@ -27,7 +27,8 @@ const registerRoutes = require('./routes/registerRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const authRoutes = require("./routes/authRoutes");
-const aplnSettingsRoutes = require("./routes/admin/aplnSettingsRoutes")
+const aplnSettingsRoutes = require("./routes/admin/aplnSettingsRoutes");
+const aplnRoutes = require("./routes/admin/aplnRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -68,5 +69,6 @@ app.use('/api/register', registerRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/application/settings', aplnSettingsRoutes);
+app.use('/api/admin/application', aplnRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
