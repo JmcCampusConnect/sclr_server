@@ -18,6 +18,7 @@ const connectDB = require('./config/db');
 const AcademicModel = require('./models/Academic');
 const StudentModel = require('./models/Student');
 const StaffModel = require('./models/Staff');
+const DonarModel = require('./models/Donor');
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -29,6 +30,7 @@ const staffRoutes = require('./routes/staffRoutes');
 const authRoutes = require("./routes/authRoutes");
 const aplnSettingsRoutes = require("./routes/admin/aplnSettingsRoutes");
 const aplnRoutes = require("./routes/admin/aplnRoutes");
+const donorRoutes = require("./routes/admin/donorRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -70,5 +72,6 @@ app.use('/api/student', studentRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/application/settings', aplnSettingsRoutes);
 app.use('/api/admin/application', aplnRoutes);
+app.use('/api/donor', donorRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------

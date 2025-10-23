@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 const donorSchema = new mongoose.Schema({
-    academicYear: String,
     donorId: String,
     donorName: String,
     mobileNo: Number,
     emailId: String,
+    academicYear: String,
     panNo: String,
     address: String,
     district: String,
