@@ -8,6 +8,7 @@ const studentSchema = new mongoose.Schema({
     programCategory: { type: String, required: true },
     department: { type: String },
     section: { type: String },
+    religion: { type: String, required: true },
     mobileNo: { type: String, required: true },
     aadharNo: { type: String, required: true },
     address: { type: String },
