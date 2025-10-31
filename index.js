@@ -32,6 +32,7 @@ const aplnSettingsRoutes = require("./routes/admin/aplnSettingsRoutes");
 const aplnRoutes = require("./routes/admin/aplnRoutes");
 const donorRoutes = require("./routes/admin/donorRoutes");
 const tutorRoutes = require("./routes/admin/tutorRoutes");
+const staffManageRoutes = require("./routes/admin/staffRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -75,5 +76,6 @@ app.use('/api/application/settings', aplnSettingsRoutes);
 app.use('/api/admin/application', aplnRoutes);
 app.use('/api/donor', donorRoutes);
 app.use('/api/tutor', tutorRoutes);
+app.use('/api/staffManage', staffManageRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------

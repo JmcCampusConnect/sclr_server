@@ -9,14 +9,14 @@ const { currentAcademicYear } = require('../../utils/commonFunctions');
 
 // Fetch donors
 
-const fetchTutors = async (req, res) => {
+const fetchStaffs = async (req, res) => {
     
     try {
-        const tutors = await StaffModel.find({ role: 3 }).sort({ createdAt: -1 });
-        return res.json({ tutors });
+        const staffs = await StaffModel.find({ role: 2 }).sort({ createdAt: -1 });
+        return res.json({ staffs });
     } catch (error) {
-        console.error('Error fetching tutors : ', error);
-        return res.status(500).json({ message: 'Server error while fetching tutors.' });
+        console.error('Error fetching staffs : ', error);
+        return res.status(500).json({ message: 'Server error while fetching staffs.' });
     }
 }
 
@@ -26,4 +26,4 @@ const fetchTutors = async (req, res) => {
 
 // ----------------------------------------------------------------------------------------------------------------
 
-module.exports = { fetchTutors }
+module.exports = { fetchStaffs }

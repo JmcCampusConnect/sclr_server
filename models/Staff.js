@@ -11,4 +11,4 @@ const staffSchema = new mongoose.Schema({
     password: String,
 }, { timestamps: true });
 
-module.exports = mongoose.model('staff', staffSchema)
+module.exports = mongoose.model('staff', staffSchema) 
