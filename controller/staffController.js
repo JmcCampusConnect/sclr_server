@@ -1,6 +1,7 @@
 const ApplicationModel = require('../models/Application');
+const Staff = require('../models/Staff');
 const StaffModel = require('../models/Staff');
-const { currentAcademicYear } = require('../utils/commonFunctions')
+const {currentAcademicYear} = require('../utils/commonFunctions')
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8,19 +9,19 @@ const { currentAcademicYear } = require('../utils/commonFunctions')
 
 const staffPasswordChange = async (req, res) => {
 
-    const { staffId, password } = req.body;
+    const {staffId, password} = req.body;
 
     try {
         const updatedStaff = await StaffModel.findOneAndUpdate(
-            { staffId },
-            { password: password },
-            { new: true }
+            {staffId},
+            {password: password},
+            {new: true}
         )
-        if (!updatedStaff) { return res.status(404).json({ error: 'Staff not found' }) }
+        if (!updatedStaff) {return res.status(404).json({error: 'Staff not found'})}
         res.json(updatedStaff);
     } catch (err) {
         console.error('Error in updating password pf staff : ', err);
-        res.status(500).json({ error: 'Failed to update password' });
+        res.status(500).json({error: 'Failed to update password'});
     }
 }
 
@@ -34,12 +35,12 @@ const getStudentCOE = async (req, res) => {
 
         const condition = {
             $or: [
-                { lastStudiedInstitutionPercentage: -1 },
-                { lastStudiedInstitutionPercentage: { $exists: false } }
+                {lastStudiedInstitutionPercentage: -1},
+                {lastStudiedInstitutionPercentage: {$exists: false}}
             ]
         }
 
-        const StuData = await ApplicationModel.find({ $and: [condition, { semesterMarkPercentage: -1 }] })
+        const StuData = await ApplicationModel.find({$and: [condition, {semesterMarkPercentage: -1}]})
 
         const totalApplications = await ApplicationModel.countDocuments(condition);
 
@@ -52,7 +53,7 @@ const getStudentCOE = async (req, res) => {
 
         return res.status(200).json({
             data: StuData, success: true,
-            counts: { totalApplications, pending, completed },
+            counts: {totalApplications, pending, completed},
         })
 
     } catch (err) {
@@ -73,16 +74,16 @@ const saveStudentMark = async (req, res) => {
 
     try {
 
-        const { changedStudents } = req.body;
+        const {changedStudents} = req.body;
 
         if (!changedStudents || !Array.isArray(changedStudents)) {
-            return res.status(400).json({ message: "Invalid request data" });
+            return res.status(400).json({message: "Invalid request data"});
         }
 
         const updates = await Promise.all(
             changedStudents.map(async (student) => {
                 return ApplicationModel.findOneAndUpdate(
-                    { registerNo: student.registerNo },
+                    {registerNo: student.registerNo},
                     {
                         $set: {
                             semesterMarkPercentage: student.semesterMarkPercentage,
@@ -90,7 +91,7 @@ const saveStudentMark = async (req, res) => {
                             semesterGrade: student.semesterGrade,
                         },
                     },
-                    { new: true }
+                    {new: true}
                 );
             })
         );
@@ -102,7 +103,7 @@ const saveStudentMark = async (req, res) => {
 
     } catch (error) {
         console.error("Error updating students for COE : ", error);
-        res.status(500).json({ message: "Server error", error });
+        res.status(500).json({message: "Server error", error});
     }
 }
 
@@ -119,7 +120,7 @@ const getStudentClassAttendance = async (req, res) => {
     try {
 
         const ac_year = await currentAcademicYear();
-        const staffData = await StaffModel.findOne({ staffId: userId });
+        const staffData = await StaffModel.findOne({staffId: userId});
 
         const totalCount = await ApplicationModel.countDocuments({
             programCategory: condition, academicYear: ac_year,
@@ -151,7 +152,7 @@ const getStudentClassAttendance = async (req, res) => {
 
     } catch (err) {
         console.log("Error getting staff data and counts for class attendacne : ", err);
-        res.status(500).json({ message: "Error fetching attendance data" });
+        res.status(500).json({message: "Error fetching attendance data"});
     }
 }
 
@@ -161,14 +162,14 @@ const getStudentClassAttendance = async (req, res) => {
 
 const saveClassAttendance = async (req, res) => {
 
-    const { enteredData } = req.body;
+    const {enteredData} = req.body;
 
     try {
 
         const ac_year = await currentAcademicYear();
         const updatePromises = enteredData.map(stu =>
             ApplicationModel.updateOne(
-                { registerNo: stu.regNo, academicYear: ac_year },
+                {registerNo: stu.regNo, academicYear: ac_year},
                 {
                     $set: {
                         classAttendancePercentage: stu.percentage,
@@ -178,13 +179,122 @@ const saveClassAttendance = async (req, res) => {
             ).exec()
         )
         await Promise.all(updatePromises);
-        res.status(200).json({ message: "Attendance updated successfully" });
+        res.status(200).json({message: "Attendance updated successfully"});
     } catch (error) {
         console.error('Error in saving class attendance : ', error);
-        res.status(500).json({ message: "Error updating attendance" });
+        res.status(500).json({message: "Error updating attendance"});
     }
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
+// get Students for Deeniyath Moral 
 
-module.exports = { getStudentCOE, saveStudentMark, staffPasswordChange, getStudentClassAttendance, saveClassAttendance }
+
+const getStudentDM = async (req, res) => {
+    const {userId} = req.body;
+    const ac_year = await currentAcademicYear();
+
+    let condition = {};
+
+    switch (userId) {
+        case "JMCDM":
+            condition = {
+                religion: "Muslim",
+                academicYear: ac_year,
+                deeniyatMoralAttendancePercentage: -1,
+                programCategory: {$in: ["SFM", "Aided"]}
+            };
+            break;
+        case "JMCDW":
+            condition = {
+                religion: "Muslim",
+                academicYear: ac_year,
+                deeniyatMoralAttendancePercentage: -1,
+                programCategory: "SFW"
+            };
+            break;
+        case "JMCMM":
+            condition = {
+                religion: {$ne: "Muslim"},
+                academicYear: ac_year,
+                deeniyatMoralAttendancePercentage: -1,
+                programCategory: {$in: ["SFM", "Aided"]}
+            };
+            break;
+        case "JMCMW":
+            condition = {
+                religion: {$ne: "Muslim"},
+                academicYear: ac_year,
+                deeniyatMoralAttendancePercentage: -1,
+                programCategory: "SFW"
+            };
+            break;
+        default:
+            condition = {};
+    }
+
+    try {
+        const students = await ApplicationModel.find(condition);
+        const StaffData = await StaffModel.find({staffId:userId})
+
+        const completedCount = await ApplicationModel.countDocuments({
+            ...condition,
+            deeniyatMoralAttendancePercentage: {$ne: -1}
+        });
+
+        const pendingCount = await ApplicationModel.countDocuments({
+            ...condition,
+            deeniyatMoralAttendancePercentage: -1
+        });
+
+        const totalCount = completedCount + pendingCount;
+
+        res.json({
+            students: students,
+            counts: {
+                completed: completedCount,
+                pending: pendingCount,
+                totalApplications: totalCount
+            },
+            StaffData: StaffData
+        });
+    } catch (error) {
+        res.status(500).json({error: error.message});
+    }
+};
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+// Save Students for Deeniyath Moral 
+
+
+const saveDMattendance = async (req, res) => {
+    const studentsData = req.body;
+    const ac_year = await currentAcademicYear();
+
+    try {
+        const bulkOps = studentsData.map(student => ({
+            updateOne: {
+                filter: {registerNo: student.registerNo, academicYear: ac_year},
+                update: {
+                    $set: {
+                        deeniyathMoralRemark: student.remark,
+                        deeniyatMoralAttendancePercentage: student.percentage
+                    }
+                }
+            }
+        }));
+
+        if (bulkOps.length > 0) {
+            const result = await ApplicationModel.bulkWrite(bulkOps);
+            res.json({message: "Update successful", result});
+        } else {
+            res.status(400).json({message: "No student data to update"});
+        }
+    } catch (error) {
+        console.error("Error while updating:", error);
+        res.status(500).json({message: "Error during update"});
+    }
+};
+
+
+module.exports = {getStudentCOE, saveStudentMark, staffPasswordChange, getStudentClassAttendance, saveClassAttendance, getStudentDM, saveDMattendance}
