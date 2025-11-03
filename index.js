@@ -19,6 +19,9 @@ const AcademicModel = require('./models/Academic');
 const StudentModel = require('./models/Student');
 const StaffModel = require('./models/Staff');
 const DonarModel = require('./models/Donor');
+const DepartmentModel = require('./models/Department');
+const DistributionModel = require('./models//Distribution');
+const TransactionModel = require('./models/Transaction');
 
 // -----------------------------------------------------------------------------------------------------------------
 
