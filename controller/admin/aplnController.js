@@ -122,4 +122,42 @@ const sclrDistributions = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { fetchStudents, fetchDonors, sclrDistributions }
+// Reject applications for Admin
+
+const rejectApplications = async (req, res) => {
+
+    try {
+
+        const { registerNo, reason } = req.body;
+        const academicYear = await currentAcademicYear()
+
+        const updatedApp = await ApplicationModel.findOneAndUpdate(
+            { registerNo, academicYear },
+            { $set: { applicationStatus: 2, reason: reason } },
+            { new: true }
+        )
+
+        if (!updatedApp) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found for the given register number.",
+            })
+        }
+
+        res.status(200).json({
+            success: true, data: updatedApp,
+            message: "Application rejected successfully.",
+        })
+
+    } catch (error) {
+        console.error("Error rejecting application : ", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error while rejecting application.",
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------
+
+module.exports = { fetchStudents, fetchDonors, sclrDistributions, rejectApplications }
