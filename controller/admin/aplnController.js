@@ -62,6 +62,8 @@ const sclrDistributions = async (req, res) => {
 
         const { scholarships, academicYear } = req.body;
 
+        // console.log(scholarships);
+
         if (!scholarships || scholarships.length === 0) {
             return res.status(400).json({ message: "No scholarships provided." });
         }
@@ -81,6 +83,17 @@ const sclrDistributions = async (req, res) => {
 
             await donor.save();
 
+            const app = await ApplicationModel.findOne({ registerNo: s.registerNo });
+            if (app) {
+                app.applicationStatus = 1;
+                app.reason = "Application has been approved";
+                app.currentYearCreditedAmount = (app.currentYearCreditedAmount || 0) + amt;
+                app.totalCreditedAmount = (app.totalCreditedAmount || 0) + amt;
+                await app.save();
+            } else {
+                console.warn(`Application not found for Register No : ${s.registerNo}`);
+            }
+
             validDocs.push({
                 academicYear, sclrType: s.sclrType, registerNo: s.registerNo,
                 name: s.name, department: s.department, donorType: s.donorType,
@@ -99,7 +112,8 @@ const sclrDistributions = async (req, res) => {
         res.status(201).json({
             message: "Scholarships distributed successfully & donor balances updated.",
             count: saved.length, data: saved,
-        });
+        })
+
     } catch (error) {
         console.error("Error saving scholarships : ", error);
         res.status(500).json({ message: "Server error", error: error.message });

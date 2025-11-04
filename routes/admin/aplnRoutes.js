@@ -6,7 +6,7 @@ const { fetchStudents, fetchDonors, sclrDistributions } = require('../../control
 
 router.get('/fetchStudents', fetchStudents);
 router.get('/fetchDonars', fetchDonors);
-router.post('/distributions', sclrDistributions);
+router.post('/sclrDistributions', sclrDistributions);
 
 // -----------------------------------------------------------------------------------------------------------------
 
