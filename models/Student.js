@@ -5,7 +5,7 @@ const studentSchema = new mongoose.Schema({
     name: { type: String, required: true },
     password: { type: String, required: true },
     yearOfAdmission: { type: String, required: true },
-    programCategory: { type: String, required: true },
+    category: { type: String, required: true },
     department: { type: String },
     section: { type: String },
     religion: { type: String, required: true },

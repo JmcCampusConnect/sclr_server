@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const applicationSchema = new mongoose.Schema({
     academicYear: { type: String, required: true },
     registerNo: { type: String, required: true, unique: true },
-    semester: { type: String, required: true },
+    semester: { type: String, required: true }, 
     name: { type: String, required: true },
     department: { type: String, required: true },
     graduate: { type: String, required: true },
-    programCategory: { type: String, required: true },
+    category: { type: String, required: true },
     specialCategory: { type: String, required: true },
     yearOfAdmission: { type: String, required: true },
     religion: { type: String, required: true },

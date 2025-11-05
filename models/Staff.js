@@ -5,7 +5,7 @@ const staffSchema = new mongoose.Schema({
     staffName: { type: String, default: 'Unknown' },
     batch: {type: String },
     department: { type: String },
-    category: { type: String },
+    programCategory: { type: String },
     section: { type: String },
     role: { type: Number, default: 0 }, 
     password: String,

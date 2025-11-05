@@ -62,6 +62,8 @@ const sclrDistributions = async (req, res) => {
 
         const { scholarships, academicYear } = req.body;
 
+        console.log(scholarships)
+
         // console.log(scholarships);
 
         if (!scholarships || scholarships.length === 0) {
@@ -98,6 +100,7 @@ const sclrDistributions = async (req, res) => {
                 academicYear, sclrType: s.sclrType, registerNo: s.registerNo,
                 name: s.name, department: s.department, donorType: s.donorType,
                 donorId: s.donorId, donorName: s.donorName, givenAmt: s.amount,
+                category: s.category, amtType: s.amtType
             })
         }
 
