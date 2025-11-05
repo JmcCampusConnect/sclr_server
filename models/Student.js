@@ -37,7 +37,8 @@ const studentSchema = new mongoose.Schema({
     // 6. Miscellaneous / Status Fields
     hostelStatus: { type: String, enum: ['Yes', 'No'], default: 'No' },
     governmentScholarship: { type: Number, required: true, default: 0, enum: [0, 1, 2] },
-    
+    isSemBased: { type: Number, required: true, default: 0, enum: [0, 1] },
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("student", studentSchema);

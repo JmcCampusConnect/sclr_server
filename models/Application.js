@@ -7,7 +7,7 @@ const applicationSchema = new mongoose.Schema({
     registerNo: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     department: { type: String, required: true },
-    graduate: { type: String, required: true, enum: ['UG', 'PG'] }, 
+    graduate: { type: String, required: true, enum: ['UG', 'PG'] },
     yearOfAdmission: { type: String, required: true },
     semester: { type: String, required: true },
     category: { type: String, required: true },
@@ -39,6 +39,20 @@ const applicationSchema = new mongoose.Schema({
     tutorVerification: { type: Number, required: true, default: 0, enum: [0, 1, 2] },
     applicationStatus: { type: Number, enum: [0, 1, 2], default: 0 },
     reason: { type: String, required: true, default: 'Your Application is under Process' },
+    tutorVerificationDetails: {
+        type: {
+            orphanOrSingleParent: { type: Boolean, default: false },
+            hazrathOrMuaddin: { type: Boolean, default: false },
+            eligibleForZakkath: { type: Boolean, default: false },
+            needyButNotZakkath: { type: Boolean, default: false },
+            remarks: { type: String, default: '' },
+            verifiedAt: { type: Date, default: null }
+        },
+        default: () => ({
+            orphanOrSingleParent: false, hazrathOrMuaddin: false, eligibleForZakkath: false,
+            needyButNotZakkath: false, remarks: '', recommended: false, verifiedBy: '', verifiedAt: null
+        })
+    },
 
     // 7. Financial Details
     lastYearCreditedAmount: { type: Number, default: 0 },
