@@ -1,40 +1,50 @@
 const mongoose = require('mongoose');
 
 const applicationSchema = new mongoose.Schema({
+
+    // 1. Student & Academic Identification
     academicYear: { type: String, required: true },
     registerNo: { type: String, required: true, unique: true },
-    semester: { type: String, required: true }, 
     name: { type: String, required: true },
     department: { type: String, required: true },
-    graduate: { type: String, required: true },
+    graduate: { type: String, required: true, enum: ['UG', 'PG'] }, 
+    yearOfAdmission: { type: String, required: true },
+    semester: { type: String, required: true },
     category: { type: String, required: true },
     specialCategory: { type: String, required: true },
-    yearOfAdmission: { type: String, required: true },
     religion: { type: String, required: true },
+
+    // 2. Scholarship Type & Related Info
     sclrType: { type: String, required: true, default: 'Fresher', enum: ['Fresher', 'Renewal'] },
     hasAppliedOtherScholarships: { type: String },
+    jamathLetter: { type: String, required: true },
+
+    // 3. Previous Study Details
     lastStudiedInstitution: { type: String },
     yearOfPassing: { type: Number },
     lastStudiedInstitutionPercentage: { type: Number, default: -1 },
-    // Class Attendance
+
+    // 4. Attendance & Moral Records
     classAttendancePercentage: { type: Number, required: true, default: -1 },
     classAttendanceRemark: { type: String, required: true, default: 'Good' },
-    // Deeniyath Moral Attendance
-    deeniyatMoralAttendancePercentage: { type: Number, required: true, default: -1 },
+    deeniyathMoralAttendancePercentage: { type: Number, required: true, default: -1 },
     deeniyathMoralRemark: { type: String, required: true, default: 'Good' },
-    // Academic performance
+
+    // 5. Academic Performance
     semesterMarkPercentage: { type: Number, required: true, default: -1 },
     semesterArrear: { type: Number, required: true, default: 0 },
     semesterGrade: { type: String, required: true, default: 'A' },
-    // Others
-    jamathLetter: { type: String, required: true },
+
+    // 6. Application Verification & Status
     tutorVerification: { type: Number, required: true, default: 0, enum: [0, 1, 2] },
     applicationStatus: { type: Number, enum: [0, 1, 2], default: 0 },
     reason: { type: String, required: true, default: 'Your Application is under Process' },
-    // Financial Status
+
+    // 7. Financial Details
     lastYearCreditedAmount: { type: Number, default: 0 },
     currentYearCreditedAmount: { type: Number, default: 0 },
     totalCreditedAmount: { type: Number, default: 0 },
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("application", applicationSchema);
