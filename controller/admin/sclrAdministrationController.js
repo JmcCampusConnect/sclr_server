@@ -41,7 +41,8 @@ const fetchStudents = async (req, res) => {
 const fetchDonors = async (req, res) => {
 
     try {
-        const donors = await DonorModel.find();
+        const currAcYear = await currentAcademicYear();
+        const donors = await DonorModel.find({ academicYear: currAcYear });
         return res.json({ donors });
     } catch (error) {
         console.error("Error fetching donars for admin application : ", error);
@@ -60,15 +61,12 @@ const sclrDistributions = async (req, res) => {
 
     try {
 
-        const { scholarships, academicYear } = req.body;
+        const { scholarships } = req.body;
+        const academicYear = await currentAcademicYear();
 
-        console.log(scholarships)
+        // console.log(scholarships)
 
-        // console.log(scholarships);
-
-        if (!scholarships || scholarships.length === 0) {
-            return res.status(400).json({ message: "No scholarships provided." });
-        }
+        if (!scholarships || scholarships.length === 0) { return res.status(400).json({ message: "No scholarships provided." }) }
 
         const validDocs = [];
 
@@ -80,8 +78,8 @@ const sclrDistributions = async (req, res) => {
                 continue;
             }
             const amt = parseFloat(s.amount) || 0;
-            if (s.sclrType === "generalBal") { donor.generalBal = (donor.generalBal || 0) - amt }
-            else if (s.sclrType === "zakkathBal") { donor.zakkathBal = (donor.zakkathBal || 0) - amt }
+            if (s.amtType === "generalBal") { donor.generalBal = (donor.generalBal || 0) - amt }
+            else if (s.amtType === "zakkathBal") { donor.zakkathBal = (donor.zakkathBal || 0) - amt }
 
             await donor.save();
 
@@ -105,9 +103,7 @@ const sclrDistributions = async (req, res) => {
         }
 
         if (validDocs.length === 0) {
-            return res.status(400).json({
-                message: "No valid scholarships — all donor IDs were invalid.",
-            })
+            return res.status(400).json({ message: "No valid scholarships — all donor IDs were invalid.", })
         }
 
         const saved = await DistributionModel.insertMany(validDocs);

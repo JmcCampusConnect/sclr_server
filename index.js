@@ -32,11 +32,12 @@ const studentRoutes = require('./routes/studentRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const authRoutes = require("./routes/authRoutes");
 const aplnSettingsRoutes = require("./routes/admin/aplnSettingsRoutes");
-const aplnRoutes = require("./routes/admin/aplnRoutes");
+const sclrAdministrationRoutes = require("./routes/admin/sclrAdministrationRoutes");
 const donorRoutes = require("./routes/admin/donorRoutes");
 const tutorRoutes = require("./routes/admin/tutorRoutes");
 const staffManageRoutes = require("./routes/admin/staffRoutes");
 const distributionRoutes = require("./routes/admin/distributionRoutes");
+const dashboardRoutes = require("./routes/admin/dashboardRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -77,10 +78,11 @@ app.use('/api/register', registerRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/application/settings', aplnSettingsRoutes);
-app.use('/api/admin/application', aplnRoutes);
+app.use('/api/admin/application', sclrAdministrationRoutes);
 app.use('/api/donor', donorRoutes);
 app.use('/api/tutor', tutorRoutes);
 app.use('/api/staffManage', staffManageRoutes);
 app.use('/api/distribution', distributionRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------

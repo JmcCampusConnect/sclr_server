@@ -18,7 +18,7 @@ const distributionSchema = new mongoose.Schema({
 
     // 4. Scholarship Details
     sclrType: { type: String, required: true, enum: ['Fresher', 'Renewal'] },
-    amtType: { type: String, required: true, enum: ['General', 'Zakkath'] },
+    amtType: { type: String, required: true },
 
     // 5. Distribution Details
     givenAmt: { type: Number, required: true, default: 0 },
