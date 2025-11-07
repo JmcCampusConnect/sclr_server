@@ -2,6 +2,7 @@ const StudentModel = require('../models/Student');
 const ApplicationModel = require('../models/Application');
 const StaffModel = require('../models/Staff');
 const AcademicModel = require('../models/Academic');
+const DistributionModel = require('../models/Distribution');
 const bcrypt = require('bcryptjs')
 const { currentAcademicYear } = require('../utils/commonFunctions');
 
@@ -51,7 +52,7 @@ const checkRegisterNo = async (req, res) => {
 
 // -----------------------------------------------------------------------------------------------------------------
 
-// For Registering User using hashing password ( Testing Purpose )
+// For registering using hashing password ( Testing Purpose )
 
 const registerUser = async (req, res) => {
 
@@ -105,41 +106,45 @@ const studentStatus = async (req, res) => {
 
 // Data of students for login application menu
 
-
 const fetchStudentData = async (req, res) => {
 
     const { registerNo } = req.query;
 
     try {
-        let studentApplnData, permissionStatus;
+        
         const academicYear = await currentAcademicYear();
-        const  studentData= await StudentModel.findOne({ registerNo });
-        if (!studentData) return res.status(404).send('Student not found');
-        const latestApplication = await ApplicationModel
-            .find({ registerNo }).sort({ academicYear: -1 }).limit(1).lean();
-        const applicationData = latestApplication.length > 0 ? latestApplication[0] : null;
+        if (!academicYear)
+            return res.status(404).json({ message: "Active academic year not found" });
 
-        if (applicationData) {
-            const applicationObj = applicationData.toObject();
-            const studentObj = studentData.toObject();
-            studentApplnData = { ...studentObj, ...applicationObj };
-        } else {
-            return res.json({ success: false, message: 'Applicantion does not exist' });
+        const student = await StudentModel.findOne({ registerNo }).lean();
+        if (!student)
+            return res.status(404).json({ message: "Student not found" });
+
+        const applications = await ApplicationModel.find({ registerNo, academicYear }).lean();
+        const academicData = await AcademicModel.findOne({ academicYear }).lean();
+        const isDateEnded = new Date() > new Date(academicData.applnEndDate);
+
+        const canApply = !isDateEnded && applications.length === 0;
+        const latestApplication = await ApplicationModel.findOne({ registerNo }).sort({ academicYear: -1 }).lean();
+        const currentAcademic = await AcademicModel.findOne({ academicYear }).lean();
+        let totalAmtGiven = 0;
+
+        const allAcademics = await AcademicModel.find({ academicId: { $lt: currentAcademic.academicId } }).sort({ academicId: -1 }).lean();
+
+        for (const prevAcademic of allAcademics) {
+            const distributions = await DistributionModel.find({ academicYear: prevAcademic.academicYear, registerNo }).lean();
+            if (distributions && distributions.length > 0) {
+                totalAmtGiven = distributions.reduce((sum, entry) => sum + (entry.givenAmt || 0), 0);
+                break;
+            }
         }
 
-        const currAcademicForm = await ApplicationModel.findOne({ academicYear, registerNo });
-        const semBasedAppln = await StudentModel.findOne({ registerNo });
-        const isSemBased = semBasedAppln.isSemBased === 0 ? false : true;
-        const dateData = await AcademicModel.findOne({ academicYear });
-        const isDateEnded = dateData.applnEndDate < new Date() ? false : true;
-        if (currAcademicForm || isDateEnded) {
-            permissionStatus = false;
-        }
-        return res.json({ status: 200, student: studentApplnData });
-    }
-    catch (err) {
-        console.error('Error fetching Student Data : ', err);
-        res.status(500).send({ message: 'Internal server error', error: err });
+        const studentApplnData = latestApplication ? { ...student, ...latestApplication } : { ...student };
+        return res.json({ status: 200, student: studentApplnData, canApply, totalAmtGiven });
+
+    } catch (err) {
+        console.error("Error fetching student data for login application : ", err);
+        res.status(500).json({ message: "Internal server error", error: err.message });
     }
 }
 

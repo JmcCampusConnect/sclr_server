@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 const donorSchema = new mongoose.Schema({
 
+    academicYear: { type: String, required: true },
+
     // 1. Donor Identification
     donorId: { type: String, required: true, unique: true },
     donorName: { type: String, required: true },
@@ -9,7 +11,7 @@ const donorSchema = new mongoose.Schema({
     panOrAadhaar: { type: String },
 
     // 2. Contact Information
-    mobileNo: { type: String, required: true },
+    mobileNo: { type: String },
     emailId: { type: String },
 
     // 3. Address Details

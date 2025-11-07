@@ -10,6 +10,7 @@ const studentSchema = new mongoose.Schema({
 
     // 2. Academic Information
     yearOfAdmission: { type: String, required: true },
+    graduate: { type: String },
     department: { type: String },
     section: { type: String },
     category: { type: String, required: true },
