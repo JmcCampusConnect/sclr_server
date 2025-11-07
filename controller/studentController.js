@@ -85,8 +85,10 @@ const studentStatus = async (req, res) => {
     try {
 
         const academicYear = await currentAcademicYear();
+        console.log(academicYear)
         let applicant = await StudentModel.findOne({ registerNo })
         let application = await ApplicationModel.findOne({ registerNo, academicYear });
+        console.log(application)
 
         if (application && applicant) {
             const applicationObj = application.toObject();
@@ -94,7 +96,7 @@ const studentStatus = async (req, res) => {
             const studentData = { ...applicantObj, ...applicationObj };
             return res.json({ status: 200, student: studentData });
         } else {
-            return res.json({ success: false, message: 'Applicantion does not exist' });
+            return res.json({ success: false, message: 'Application does not exist' });
         }
     } catch (error) {
         console.log('Error in fetching student data for student dashboard : ', error);
@@ -111,7 +113,7 @@ const fetchStudentData = async (req, res) => {
     const { registerNo } = req.query;
 
     try {
-        
+
         const academicYear = await currentAcademicYear();
         if (!academicYear)
             return res.status(404).json({ message: "Active academic year not found" });
@@ -124,23 +126,29 @@ const fetchStudentData = async (req, res) => {
         const academicData = await AcademicModel.findOne({ academicYear }).lean();
         const isDateEnded = new Date() > new Date(academicData.applnEndDate);
 
-        const canApply = !isDateEnded && applications.length === 0;
+
+        let canApply = true;
+
+        if (student.isSemBased === 1) { if (isDateEnded || applications.length >= 2) canApply = false }
+        else { if (isDateEnded || applications.length >= 1) canApply = false }
+
         const latestApplication = await ApplicationModel.findOne({ registerNo }).sort({ academicYear: -1 }).lean();
         const currentAcademic = await AcademicModel.findOne({ academicYear }).lean();
-        let totalAmtGiven = 0;
+        let lastYearCreditedAmount = 0;
 
         const allAcademics = await AcademicModel.find({ academicId: { $lt: currentAcademic.academicId } }).sort({ academicId: -1 }).lean();
 
         for (const prevAcademic of allAcademics) {
             const distributions = await DistributionModel.find({ academicYear: prevAcademic.academicYear, registerNo }).lean();
             if (distributions && distributions.length > 0) {
-                totalAmtGiven = distributions.reduce((sum, entry) => sum + (entry.givenAmt || 0), 0);
+                lastYearCreditedAmount = distributions.reduce((sum, entry) => sum + (entry.givenAmt || 0), 0);
                 break;
             }
         }
 
         const studentApplnData = latestApplication ? { ...student, ...latestApplication } : { ...student };
-        return res.json({ status: 200, student: studentApplnData, canApply, totalAmtGiven });
+        if (canApply && "semester" in studentApplnData) { delete studentApplnData.semester }
+        return res.json({ status: 200, student: studentApplnData, canApply, lastYearCreditedAmount });
 
     } catch (err) {
         console.error("Error fetching student data for login application : ", err);
