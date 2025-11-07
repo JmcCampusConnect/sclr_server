@@ -4,7 +4,7 @@ const applicationSchema = new mongoose.Schema({
 
     // 1. Student & Academic Identification
     academicYear: { type: String, required: true },
-    registerNo: { type: String, required: true, unique: true },
+    registerNo: { type: String, required: true },
     name: { type: String, required: true },
     department: { type: String, required: true },
     graduate: { type: String, required: true, enum: ['UG', 'PG'] },

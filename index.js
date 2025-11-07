@@ -27,7 +27,6 @@ const TransactionModel = require('./models/Transaction');
 
 // Routes Path
 
-const registerRoutes = require('./routes/registerRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const authRoutes = require("./routes/authRoutes");
@@ -74,7 +73,6 @@ app.listen(PORT, () => {
 // Routes Link
 
 app.use("/auth", authRoutes);
-app.use('/api/register', registerRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/application/settings', aplnSettingsRoutes);
