@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { registerUser, studentStatus, registerApplicationSave, checkRegisterNo, fetchStudentData } = require('../controller/studentController');
+const { registerUser, studentStatus, registerApplication, checkRegisterNo, fetchStudentData,
+    loginApplication } = require('../controller/studentController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -21,7 +22,8 @@ const upload = multer({ storage });
 
 router.post('/register', registerUser);
 router.get('/status', studentStatus);
-router.post('/application', upload.single('jamathLetter'), registerApplicationSave);
+router.post('/registerApplication', upload.single('jamathLetter'), registerApplication);
+router.post('/loginApplication', upload.single('jamathLetter'), loginApplication);
 router.get('/checkRegisterNo', checkRegisterNo);
 router.get('/fetchStudentData', fetchStudentData);
 

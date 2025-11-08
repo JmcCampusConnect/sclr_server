@@ -22,7 +22,7 @@ const applicationSchema = new mongoose.Schema({
     // 3. Previous Study Details
     lastStudiedInstitution: { type: String },
     yearOfPassing: { type: Number },
-    lastStudiedInstitutionPercentage: { type: Number, default: -1 },
+    lastStudiedInstitutionPercentage: { type: Number },
 
     // 4. Attendance & Moral Records
     classAttendancePercentage: { type: Number, required: true, default: -1 },

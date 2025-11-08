@@ -21,14 +21,13 @@ const donorSchema = new mongoose.Schema({
     pinCode: { type: Number },
 
     // 4. Donation Details
-    donorDate: { type: String }, 
-    generalAmt: { type: Number, default: 0 },
-    zakkathAmt: { type: Number, default: 0 },
+    generalAmt: { type: Number },
+    zakkathAmt: { type: Number },
 
     // 5. Financial Balances
-    generalBal: { type: Number, default: 0 },
-    zakkathBal: { type: Number, default: 0 },
-    
+    generalBal: { type: Number },
+    zakkathBal: { type: Number },
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('donor', donorSchema);

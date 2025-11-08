@@ -8,50 +8,6 @@ const { currentAcademicYear } = require('../utils/commonFunctions');
 
 // -----------------------------------------------------------------------------------------------------------------
 
-// Application save through register application menu
-
-const registerApplicationSave = async (req, res) => {
-
-    // console.log(req.body)
-
-    let savedStudent;
-
-    try {
-        const academicYear = await currentAcademicYear()
-        const formData = { ...req.body };
-        if (req.file) { formData.jamathLetter = req.file.path }
-        const studentBasicDetails = new StudentModel(formData);
-        const studentOtherDetails = new ApplicationModel({ ...formData, academicYear });
-        savedStudent = await studentBasicDetails.save();
-        await studentOtherDetails.save();
-        return res.status(201).json({ status: 201, message: 'Application registered successfully' });
-    } catch (error) {
-        if (savedStudent?._id) { await StudentModel.findByIdAndDelete(savedStudent._id) }
-        console.error('Error in saving Fresher Application : ', error.message)
-        return res.status(500).json({ message: 'Internal Server Error' })
-    }
-}
-
-// -----------------------------------------------------------------------------------------------------------------
-
-// To check whether a register no is exists or not
-
-const checkRegisterNo = async (req, res) => {
-
-    const { registerNo } = req.query;
-
-    try {
-        const student = await StudentModel.findOne({ registerNo });
-        if (student) { return res.json({ message: 'Already Applied' }) }
-        else { return res.status(200).json({ success: true, message: "Allow to apply" }) }
-    } catch (err) {
-        console.error("Error in checking register number in Student Model for applying application : ", err);
-        return res.status(500).json({ success: false, message: "Internal server error", error: err.message });
-    }
-}
-
-// -----------------------------------------------------------------------------------------------------------------
-
 // For registering using hashing password ( Testing Purpose )
 
 const registerUser = async (req, res) => {
@@ -76,6 +32,24 @@ const registerUser = async (req, res) => {
 
 // -----------------------------------------------------------------------------------------------------------------
 
+// To check whether a register no is exists or not
+
+const checkRegisterNo = async (req, res) => {
+
+    const { registerNo } = req.query;
+
+    try {
+        const student = await StudentModel.findOne({ registerNo });
+        if (student) { return res.json({ message: 'Already Applied' }) }
+        else { return res.status(200).json({ success: true, message: "Allow to apply" }) }
+    } catch (err) {
+        console.error("Error in checking register number in Student Model for applying application : ", err);
+        return res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+    }
+}
+
+// -----------------------------------------------------------------------------------------------------------------
+
 // To dispaly the details for current academic year in student dashboard
 
 const studentStatus = async (req, res) => {
@@ -85,10 +59,8 @@ const studentStatus = async (req, res) => {
     try {
 
         const academicYear = await currentAcademicYear();
-        console.log(academicYear)
         let applicant = await StudentModel.findOne({ registerNo })
         let application = await ApplicationModel.findOne({ registerNo, academicYear });
-        console.log(application)
 
         if (application && applicant) {
             const applicationObj = application.toObject();
@@ -106,7 +78,7 @@ const studentStatus = async (req, res) => {
 
 // -----------------------------------------------------------------------------------------------------------------
 
-// Data of students for login application menu
+// To display Data of students for login application menu
 
 const fetchStudentData = async (req, res) => {
 
@@ -115,17 +87,13 @@ const fetchStudentData = async (req, res) => {
     try {
 
         const academicYear = await currentAcademicYear();
-        if (!academicYear)
-            return res.status(404).json({ message: "Active academic year not found" });
-
+        if (!academicYear) return res.status(404).json({ message: "Active academic year not found" });
         const student = await StudentModel.findOne({ registerNo }).lean();
-        if (!student)
-            return res.status(404).json({ message: "Student not found" });
+        if (!student) return res.status(404).json({ message: "Student not found" });
 
         const applications = await ApplicationModel.find({ registerNo, academicYear }).lean();
         const academicData = await AcademicModel.findOne({ academicYear }).lean();
         const isDateEnded = new Date() > new Date(academicData.applnEndDate);
-
 
         let canApply = true;
 
@@ -147,7 +115,18 @@ const fetchStudentData = async (req, res) => {
         }
 
         const studentApplnData = latestApplication ? { ...student, ...latestApplication } : { ...student };
-        if (canApply && "semester" in studentApplnData) { delete studentApplnData.semester }
+        if (canApply && "semester" in studentApplnData) {
+            const removeFields = [
+                "semester", "jamathLetter", "sclrType", "_id",
+                "lastStudiedInstitution", "lastStudiedInstitutionPercentage", "yearOfPassing",
+                "classAttendancePercentage", "classAttendanceRemark",
+                "deeniyathMoralAttendancePercentage", "deeniyathMoralRemark",
+                "semesterMarkPercentage", "semesterArrear", "semesterGrade",
+                "tutorVerification", "applicationStatus", "reason",
+                "currentYearCreditedAmount", "totalCreditedAmount"
+            ]
+            removeFields.forEach(field => delete studentApplnData[field]);
+        }
         return res.json({ status: 200, student: studentApplnData, canApply, lastYearCreditedAmount });
 
     } catch (err) {
@@ -158,4 +137,52 @@ const fetchStudentData = async (req, res) => {
 
 // -----------------------------------------------------------------------------------------------------------------
 
-module.exports = { registerUser, studentStatus, registerApplicationSave, checkRegisterNo, fetchStudentData }
+// Application save through register application menu
+
+const registerApplication = async (req, res) => {
+
+    // console.log(req.body)
+
+    let savedStudent;
+
+    try {
+        const academicYear = await currentAcademicYear()
+        const formData = { ...req.body };
+        if (req.file) { formData.jamathLetter = req.file.path }
+        const studentBasicDetails = new StudentModel(formData);
+        const studentOtherDetails = new ApplicationModel({ ...formData, academicYear });
+        savedStudent = await studentBasicDetails.save();
+        await studentOtherDetails.save();
+        return res.status(201).json({ status: 201, message: 'Application registered successfully' });
+    } catch (error) {
+        if (savedStudent?._id) { await StudentModel.findByIdAndDelete(savedStudent._id) }
+        console.error('Error in saving Fresher Application : ', error.message)
+        return res.status(500).json({ message: 'Internal Server Error' })
+    }
+}
+
+// -----------------------------------------------------------------------------------------------------------------
+
+// Application save through login application menu
+
+const loginApplication = async (req, res) => {
+
+    // console.log(req.body)
+
+    let savedStudent;
+
+    try {
+        const academicYear = await currentAcademicYear()
+        const formData = { ...req.body };
+        if (req.file) { formData.jamathLetter = req.file.path }
+        const studentApplicationDetails = new ApplicationModel({ ...formData, academicYear });
+        savedStudent = await studentApplicationDetails.save();
+        return res.status(201).json({ status: 201, message: 'Application registered successfully' });
+    } catch (error) {
+        console.error('Error in saving Fresher Application : ', error.message)
+        return res.status(500).json({ message: 'Internal Server Error' })
+    }
+}
+
+// -----------------------------------------------------------------------------------------------------------------
+module.exports = { registerUser, studentStatus, registerApplication, checkRegisterNo, fetchStudentData, loginApplication }
