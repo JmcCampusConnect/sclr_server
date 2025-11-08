@@ -156,7 +156,7 @@ const registerApplication = async (req, res) => {
         return res.status(201).json({ status: 201, message: 'Application registered successfully' });
     } catch (error) {
         if (savedStudent?._id) { await StudentModel.findByIdAndDelete(savedStudent._id) }
-        console.error('Error in saving Fresher Application : ', error.message)
+        console.error('Error in saving register application : ', error.message)
         return res.status(500).json({ message: 'Internal Server Error' })
     }
 }
@@ -172,14 +172,32 @@ const loginApplication = async (req, res) => {
     let savedStudent;
 
     try {
-        const academicYear = await currentAcademicYear()
+        const academicYear = await currentAcademicYear();
         const formData = { ...req.body };
         if (req.file) { formData.jamathLetter = req.file.path }
+
+        // Application save in application Table
         const studentApplicationDetails = new ApplicationModel({ ...formData, academicYear });
         savedStudent = await studentApplicationDetails.save();
+
+        // Update the records in StudentModel
+        if (formData.registerNo) {
+            const studentFields = Object.keys(StudentModel.schema.paths);
+            const updateData = {};
+            for (const key of Object.keys(formData)) {
+                if (studentFields.includes(key)) {
+                    updateData[key] = formData[key];
+                }
+            }
+            await StudentModel.findOneAndUpdate(
+                { registerNo: formData.registerNo },
+                { $set: updateData }, { new: true }
+            )
+        }
         return res.status(201).json({ status: 201, message: 'Application registered successfully' });
+
     } catch (error) {
-        console.error('Error in saving Fresher Application : ', error.message)
+        console.error('Error in saving login application : ', error.message)
         return res.status(500).json({ message: 'Internal Server Error' })
     }
 }
