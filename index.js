@@ -37,6 +37,7 @@ const tutorRoutes = require("./routes/admin/tutorRoutes");
 const staffManageRoutes = require("./routes/admin/staffRoutes");
 const distributionRoutes = require("./routes/admin/distributionRoutes");
 const dashboardRoutes = require("./routes/admin/dashboardRoutes");
+const departmentRoutes = require("./routes/admin/deptRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -82,5 +83,6 @@ app.use('/api/tutor', tutorRoutes);
 app.use('/api/staffManage', staffManageRoutes);
 app.use('/api/distribution', distributionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/dept', departmentRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
