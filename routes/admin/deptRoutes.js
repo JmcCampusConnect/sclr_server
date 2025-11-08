@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { fetchDepts } = require('../../controller/admin/deptController');
+const { fetchDepts,addDepartment ,updateDepartment,deleteDepartment} = require('../../controller/admin/deptController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
 router.get('/fetchDepts', fetchDepts);
+router.post('/addDepartment', addDepartment);
+router.post('/updateDepartment', updateDepartment);
+router.post('/deleteDepartment', deleteDepartment);
 
 // -----------------------------------------------------------------------------------------------------------------
 
