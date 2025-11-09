@@ -42,6 +42,7 @@ const fetchDepartments = async (req, res) => {
 // Add new tutor
 
 const addTutor = async (req, res) => {
+    console.log(req.body)
     try {
         const {staffId, staffName, batch, department, category, section} = req.body;
 
@@ -54,7 +55,7 @@ const addTutor = async (req, res) => {
             staffName,
             batch,
             department,
-            programCategory: category,
+            programCategory:category,
             section,
             role: 3, // Tutor role
             password: 123
@@ -65,6 +66,7 @@ const addTutor = async (req, res) => {
         }
 
         await newTutor.save();
+        console.log(newTutor)
         return res.status(201).json({message: 'Tutor added successfully.', tutor: newTutor});
     } catch (error) {
         console.error('Error adding tutor : ', error);
@@ -77,8 +79,8 @@ const addTutor = async (req, res) => {
 
 const updateTutor = async (req, res) => {
     try {
-        const {staffId, staffName, batch, department, programCategory, section} = req.body;
-        if (!staffId || !staffName || !batch || !department || !programCategory || !section) {
+        const {staffId, staffName, batch, department, category, section} = req.body;
+        if (!staffId || !staffName || !batch || !department || !category || !section) {
             return res.status(401).json({message: 'All fields are required to update a tutor.'});
         }
         const tutor = await StaffModel.findOne({staffId});
@@ -88,15 +90,40 @@ const updateTutor = async (req, res) => {
         tutor.staffName = staffName;
         tutor.batch = batch;
         tutor.department = department;
-        tutor.programCategory = programCategory;
+        tutor.category = category;
         tutor.section = section;
 
         await tutor.save();
 
         return res.status(200).json({message: 'Tutor updated successfully.', updatedTutor: tutor});
     } catch (error) {
-        console.error('Error updating tutor : ', error);
+        // console.error('Error updating tutor : ', error);
         return res.status(500).json({message: 'Server error while updating tutor.'});
     }
 }
-module.exports = {fetchTutors, fetchDepartments, addTutor, updateTutor}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------
+// Delete tutor
+
+const deleteTutor = async (req, res) => {
+    console.log(req.body)
+    try {
+        const {staffId} = req.body; // Extract staffId from request body
+
+        if (!staffId) {
+            return res.status(400).json({message: 'Staff ID is required to delete a tutor.'});
+        }
+        const tutor = await StaffModel.findOne({staffId});
+        if (!tutor) {
+            return res.status(404).json({message: 'Tutor not found.'});
+        }
+        await StaffModel.deleteOne({staffId});
+        // console.log(tutor)
+
+        return res.status(200).json({message: 'Tutor deleted successfully.'});
+    } catch (error) {
+        console.error('Error deleting tutor : ', error);
+        return res.status(500).json({message: 'Server error while deleting tutor.'});
+    }
+}
+module.exports = {fetchTutors, fetchDepartments, addTutor, updateTutor, deleteTutor}
