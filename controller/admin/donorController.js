@@ -38,7 +38,9 @@ const addDonor = async (req, res) => {
 
 
         const academicYear = await currentAcademicYear()
-
+        if (req.body.donarName == "" || req.body.donorType == "") {
+            return res.status(409).json({message: "Donor Name and Donor Type are required."});
+        }
         // console.log("aca", academicYear)
         const donorData = {
             academicYear: academicYear,
