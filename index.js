@@ -38,6 +38,7 @@ const staffManageRoutes = require("./routes/admin/staffRoutes");
 const distributionRoutes = require("./routes/admin/distributionRoutes");
 const dashboardRoutes = require("./routes/admin/dashboardRoutes");
 const departmentRoutes = require("./routes/admin/deptRoutes");
+const reportRoutes = require("./routes/admin/reportRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -84,5 +85,6 @@ app.use('/api/staffManage', staffManageRoutes);
 app.use('/api/distribution', distributionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/dept', departmentRoutes);
+app.use('/api/report', reportRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
