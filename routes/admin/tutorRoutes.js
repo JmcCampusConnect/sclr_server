@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { fetchTutors } = require('../../controller/admin/tutorController');
+const { fetchTutors ,fetchDepartments,addTutor,updateTutor} = require('../../controller/admin/tutorController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
 router.get('/fetchTutors', fetchTutors);
+router.get('/departments', fetchDepartments);
+router.post('/addTutor', addTutor);
+router.post('/updateTutor', updateTutor);
 
 // -----------------------------------------------------------------------------------------------------------------
 
