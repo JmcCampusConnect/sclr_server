@@ -1,14 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const {fetchDonors, addDonor, updateDonor, deleteDonor, addAmount} = require('../../controller/admin/donorController');
+const { fetchDonors, fetchCardsData } = require('../../controller/admin/reportController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
 router.get('/fetchDonors', fetchDonors);
-router.post('/addDonor', addDonor);
-router.post('/updateDonor', updateDonor);
-router.delete('/deleteDonor/:donorId', deleteDonor);
-router.post('/addAmount', addAmount);
+router.get('/fetchCardsData', fetchCardsData);
 
 // -----------------------------------------------------------------------------------------------------------------
 
