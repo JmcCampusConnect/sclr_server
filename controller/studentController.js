@@ -93,11 +93,14 @@ const fetchStudentData = async (req, res) => {
 
         const applications = await ApplicationModel.find({ registerNo, academicYear }).lean();
         const academicData = await AcademicModel.findOne({ academicYear }).lean();
-        const isDateEnded = new Date() > new Date(academicData.applnEndDate);
+        const isDateEnded = new Date() <= new Date(academicData.applnEndDate);
 
         let canApply = true;
 
-        if (student.isSemBased === 1) { if (isDateEnded || applications.length >= 2) canApply = false }
+        if (student.isSemBased === 1) {
+            if (isDateEnded || applications.length >= 2) { canApply = false }
+            else { canApply = true }
+        }
         else { if (isDateEnded || applications.length >= 1) canApply = false }
 
         const latestApplication = await ApplicationModel.findOne({ registerNo }).sort({ academicYear: -1 }).lean();

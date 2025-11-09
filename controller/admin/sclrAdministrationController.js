@@ -34,8 +34,6 @@ const fetchStudents = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-// Fetch students for Admin Sclr Admisnistration
-
 // Fetch donars for Admin Sclr Admisnistration
 
 const fetchDonors = async (req, res) => {
@@ -83,13 +81,13 @@ const sclrDistributions = async (req, res) => {
 
             await donor.save();
 
-            const app = await ApplicationModel.findOne({ registerNo: s.registerNo });
+            const app = await ApplicationModel.findOne({ registerNo: s._id });
             if (app) {
                 app.applicationStatus = 1;
                 app.reason = "Application has been approved";
                 app.currentYearCreditedAmount = (app.currentYearCreditedAmount || 0) + amt;
                 app.totalCreditedAmount = (app.totalCreditedAmount || 0) + amt;
-                await app.save();
+                await app.save({ validateBeforeSave: false });
             } else {
                 console.warn(`Application not found for Register No : ${s.registerNo}`);
             }
@@ -114,7 +112,7 @@ const sclrDistributions = async (req, res) => {
         })
 
     } catch (error) {
-        console.error("Error saving scholarships : ", error);
+        console.error("Error saving scholarships ---- : ", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }
@@ -127,11 +125,11 @@ const rejectApplications = async (req, res) => {
 
     try {
 
-        const { registerNo, reason } = req.body;
+        const { registerNo, reason, id } = req.body;
         const academicYear = await currentAcademicYear()
 
         const updatedApp = await ApplicationModel.findOneAndUpdate(
-            { registerNo, academicYear },
+            { registerNo, academicYear, _id },
             { $set: { applicationStatus: 2, reason: reason } },
             { new: true }
         )

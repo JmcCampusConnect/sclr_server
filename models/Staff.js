@@ -9,7 +9,7 @@ const staffSchema = new mongoose.Schema({
     // 2. Academic Assignment
     batch: { type: String },
     department: { type: String },
-    programCategory: { type: String },
+    category: { type: String },
     section: { type: String },
 
     // 3. Role & Access Control
