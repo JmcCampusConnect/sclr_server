@@ -12,6 +12,7 @@ const createAccessToken = (payload) => {
     return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
 }
 
+
 const createRefreshToken = (payload) => {
     return jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
 }
@@ -75,7 +76,7 @@ const tokenRefresh = (req, res) => {
 // Logout User
 
 const logoutUser = (req, res) => {
-    res.clearCookie("refreshToken", { path: "/auth/refresh" });
+    res.clearCookie("refreshToken", { path: "/" });
     res.status(200).json({ message: "Logged out successfully" });
 }
 

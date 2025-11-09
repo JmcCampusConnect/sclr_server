@@ -16,19 +16,27 @@ const fetchStudents = async (req, res) => {
 
         const currAcYear = await currentAcademicYear();
         const allApplications = await ApplicationModel.find({ academicYear: currAcYear });
+
         const combinedData = await Promise.all(
             allApplications.map(async (apln) => {
                 const student = await StudentModel.findOne({ registerNo: apln.registerNo });
-                return { ...apln.toObject(), ...(student ? student.toObject() : {}) }
+                const aplnData = apln.toObject();
+                const studentData = student ? student.toObject() : {};
+                return {
+                    ...aplnData, applicationId: aplnData._id,
+                    studentId: studentData._id, ...studentData
+                }
             })
         )
+
         return res.json({ data: combinedData });
+
     } catch (error) {
         console.error("Error fetching students for admin application : ", error);
         return res.status(500).json({
             success: false,
             message: "Server error while fetching students and applications.",
-        })
+        });
     }
 }
 
@@ -81,7 +89,7 @@ const sclrDistributions = async (req, res) => {
 
             await donor.save();
 
-            const app = await ApplicationModel.findOne({ registerNo: s._id });
+            const app = await ApplicationModel.findOne({ _id: s.applicationId });
             if (app) {
                 app.applicationStatus = 1;
                 app.reason = "Application has been approved";
@@ -125,11 +133,11 @@ const rejectApplications = async (req, res) => {
 
     try {
 
-        const { registerNo, reason, id } = req.body;
+        const { registerNo, reason, applicationId } = req.body;
         const academicYear = await currentAcademicYear()
 
         const updatedApp = await ApplicationModel.findOneAndUpdate(
-            { registerNo, academicYear, _id },
+            { registerNo, academicYear, _id: applicationId },
             { $set: { applicationStatus: 2, reason: reason } },
             { new: true }
         )

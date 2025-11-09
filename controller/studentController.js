@@ -60,7 +60,7 @@ const studentStatus = async (req, res) => {
 
         const academicYear = await currentAcademicYear();
         let applicant = await StudentModel.findOne({ registerNo })
-        let application = await ApplicationModel.findOne({ registerNo, academicYear });
+        let application = await ApplicationModel.findOne({ registerNo, academicYear }).sort({ _id: -1 });;
 
         if (application && applicant) {
             const applicationObj = application.toObject();
@@ -91,7 +91,7 @@ const fetchStudentData = async (req, res) => {
         const student = await StudentModel.findOne({ registerNo }).lean();
         if (!student) return res.status(404).json({ message: "Student not found" });
 
-        const applications = await ApplicationModel.find({ registerNo, academicYear }).lean();
+        const applications = await ApplicationModel.find({ registerNo, academicYear }).lean().sort({ _id: -1 });
         const academicData = await AcademicModel.findOne({ academicYear }).lean();
         const isDateEnded = new Date() <= new Date(academicData.applnEndDate);
 
@@ -103,7 +103,7 @@ const fetchStudentData = async (req, res) => {
         }
         else { if (isDateEnded || applications.length >= 1) canApply = false }
 
-        const latestApplication = await ApplicationModel.findOne({ registerNo }).sort({ academicYear: -1 }).lean();
+        const latestApplication = await ApplicationModel.findOne({ registerNo }).sort({ _id: -1 }).lean();
         const currentAcademic = await AcademicModel.findOne({ academicYear }).lean();
         let lastYearCreditedAmount = 0;
 
