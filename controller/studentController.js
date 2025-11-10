@@ -93,7 +93,9 @@ const fetchStudentData = async (req, res) => {
 
         const applications = await ApplicationModel.find({ registerNo, academicYear }).lean().sort({ _id: -1 });
         const academicData = await AcademicModel.findOne({ academicYear }).lean();
-        const isDateEnded = new Date() <= new Date(academicData.applnEndDate);
+        const endDate = new Date(academicData.applnEndDate);
+        endDate.setHours(23, 59, 59, 999); 
+        const isDateEnded = new Date() > endDate;
 
         let canApply = true;
 
