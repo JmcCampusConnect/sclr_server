@@ -66,98 +66,163 @@ const fetchPieData = async (req, res) => {
 const fetchBarData = async (req, res) => {
 
 	try {
-		
+
 		const academicYear = await currentAcademicYear();
 
-		// --- UG MEN ---
-		const ugFirstYearMen = await ApplicationModel.countDocuments({
-			academicYear,
-			graduate: 'UG',
-			category: { $in: ['Aided', 'SFM'] },
-			semester: { $in: ['I', 'II'] },
-		});
-
-		const ugSecondYearMen = await ApplicationModel.countDocuments({
-			academicYear,
-			graduate: 'UG',
-			category: { $in: ['Aided', 'SFM'] },
-			semester: { $in: ['III', 'IV'] },
-		});
-
-		const ugThirdYearMen = await ApplicationModel.countDocuments({
-			academicYear,
-			graduate: 'UG',
-			category: { $in: ['Aided', 'SFM'] },
-			semester: { $in: ['V', 'VI'] },
-		});
-
-		// --- UG WOMEN ---
-		const ugFirstYearWomen = await ApplicationModel.countDocuments({
-			academicYear,
-			graduate: 'UG',
-			category: 'SFW',
-			semester: { $in: ['I', 'II'] },
-		});
-
-		const ugSecondYearWomen = await ApplicationModel.countDocuments({
-			academicYear,
-			graduate: 'UG',
-			category: 'SFW',
-			semester: { $in: ['III', 'IV'] },
-		});
-
-		const ugThirdYearWomen = await ApplicationModel.countDocuments({
-			academicYear,
-			graduate: 'UG',
-			category: 'SFW',
-			semester: { $in: ['V', 'VI'] },
-		});
-
-		// --- PG MEN ---
-		const pgFirstYearMen = await ApplicationModel.countDocuments({
-			academicYear,
-			graduate: 'PG',
-			category: { $in: ['Aided', 'SFM'] },
-			semester: { $in: ['I', 'II'] },
-		});
-
-		const pgSecondYearMen = await ApplicationModel.countDocuments({
-			academicYear,
-			graduate: 'PG',
-			category: { $in: ['Aided', 'SFM'] },
-			semester: { $in: ['III', 'IV'] },
-		});
-
-		// --- PG WOMEN ---
-		const pgFirstYearWomen = await ApplicationModel.countDocuments({
-			academicYear,
-			graduate: 'PG',
-			category: 'SFW',
-			semester: { $in: ['I', 'II'] },
-		});
-
-		const pgSecondYearWomen = await ApplicationModel.countDocuments({
-			academicYear,
-			graduate: 'PG',
-			category: 'SFW',
-			semester: { $in: ['III', 'IV'] },
-		});
-
-		// Response Data
-		res.json({
+		const enrollment = {
 			ug: {
-				men: [ugFirstYearMen, ugSecondYearMen, ugThirdYearMen],
-				women: [ugFirstYearWomen, ugSecondYearWomen, ugThirdYearWomen],
+				men: [
+					await ApplicationModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: { $in: ["Aided", "SFM"] },
+						semester: { $in: ["I", "II"] },
+					}),
+					await ApplicationModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: { $in: ["Aided", "SFM"] },
+						semester: { $in: ["III", "IV"] },
+					}),
+					await ApplicationModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: { $in: ["Aided", "SFM"] },
+						semester: { $in: ["V", "VI"] },
+					}),
+				],
+				women: [
+					await ApplicationModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: "SFW",
+						semester: { $in: ["I", "II"] },
+					}),
+					await ApplicationModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: "SFW",
+						semester: { $in: ["III", "IV"] },
+					}),
+					await ApplicationModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: "SFW",
+						semester: { $in: ["V", "VI"] },
+					}),
+				],
 			},
 			pg: {
-				men: [pgFirstYearMen, pgSecondYearMen],
-				women: [pgFirstYearWomen, pgSecondYearWomen],
+				men: [
+					await ApplicationModel.countDocuments({
+						academicYear,
+						graduate: "PG",
+						category: { $in: ["Aided", "SFM"] },
+						semester: { $in: ["I", "II"] },
+					}),
+					await ApplicationModel.countDocuments({
+						academicYear,
+						graduate: "PG",
+						category: { $in: ["Aided", "SFM"] },
+						semester: { $in: ["III", "IV"] },
+					}),
+				],
+				women: [
+					await ApplicationModel.countDocuments({
+						academicYear,
+						graduate: "PG",
+						category: "SFW",
+						semester: { $in: ["I", "II"] },
+					}),
+					await ApplicationModel.countDocuments({
+						academicYear,
+						graduate: "PG",
+						category: "SFW",
+						semester: { $in: ["III", "IV"] },
+					}),
+				],
 			},
-		})
+		};
+
+		const distributed = {
+			ug: {
+				men: [
+					await DistributionModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: { $in: ["Aided", "SFM"] },
+						semester: { $in: ["I", "II"] },
+					}),
+					await DistributionModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: { $in: ["Aided", "SFM"] },
+						semester: { $in: ["III", "IV"] },
+					}),
+					await DistributionModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: { $in: ["Aided", "SFM"] },
+						semester: { $in: ["V", "VI"] },
+					}),
+				],
+				women: [
+					await DistributionModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: "SFW",
+						semester: { $in: ["I", "II"] },
+					}),
+					await DistributionModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: "SFW",
+						semester: { $in: ["III", "IV"] },
+					}),
+					await DistributionModel.countDocuments({
+						academicYear,
+						graduate: "UG",
+						category: "SFW",
+						semester: { $in: ["V", "VI"] },
+					}),
+				],
+			},
+			pg: {
+				men: [
+					await DistributionModel.countDocuments({
+						academicYear,
+						graduate: "PG",
+						category: { $in: ["Aided", "SFM"] },
+						semester: { $in: ["I", "II"] },
+					}),
+					await DistributionModel.countDocuments({
+						academicYear,
+						graduate: "PG",
+						category: { $in: ["Aided", "SFM"] },
+						semester: { $in: ["III", "IV"] },
+					}),
+				],
+				women: [
+					await DistributionModel.countDocuments({
+						academicYear,
+						graduate: "PG",
+						category: "SFW",
+						semester: { $in: ["I", "II"] },
+					}),
+					await DistributionModel.countDocuments({
+						academicYear,
+						graduate: "PG",
+						category: "SFW",
+						semester: { $in: ["III", "IV"] },
+					}),
+				],
+			},
+		};
+		res.json({ enrollment, distributed });
 
 	} catch (error) {
-		console.error("Error fetching dashboard bar data:", error);
-		res.status(500).json({ message: 'Error fetching dashboard bar data' });
+		console.error("Error fetching dashboard bar data : ", error);
+		res.status(500).json({ message: "Error fetching dashboard bar data" });
 	}
 }
 
