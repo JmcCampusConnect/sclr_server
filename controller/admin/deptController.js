@@ -1,129 +1,128 @@
-const StudentModel = require('../../models/Student');
-const ApplicationModel = require('../../models/Application');
-const AcademicModel = require('../../models/Academic');
-const DonorModel = require('../../models/Donor');
-const TransactionModel = require('../../models/Transaction');
 const DepartmentModel = require('../../models/Department');
-const {currentAcademicYear} = require('../../utils/commonFunctions');
 
-// ---------------------------------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Utility Response Helpers
+// -----------------------------------------------------------------------------
 
-// Fetch departments
+const sendError = (res, status, message, error = null) => {
+    if (error) console.error(message, error);
+    return res.status(status).json({ success: false, message });
+};
+
+const sendSuccess = (res, status, message, data = {}) => {
+    return res.status(status).json({ success: true, message, ...data });
+};
+
+// -----------------------------------------------------------------------------
+// Fetch All Departments
+// -----------------------------------------------------------------------------
 
 const fetchDepts = async (req, res) => {
-
     try {
-        const depts = await DepartmentModel.find().sort({createdAt: -1});
-        // console.log(depts)
-        return res.json({depts});
+        const depts = await DepartmentModel.find().sort({ createdAt: -1 });
+        return sendSuccess(res, 200, 'Departments fetched successfully.', { depts });
     } catch (error) {
-        console.error('Error fetching depts : ', error);
-        return res.status(500).json({message: 'Server error while fetching depts.'});
+        return sendError(res, 500, 'Server error while fetching departments.', error);
     }
-}
+};
 
-// ---------------------------------------------------------------------------------------------------------------------------------------------
-// Add Department 
+// -----------------------------------------------------------------------------
+// Add Department
+// -----------------------------------------------------------------------------
+
 const addDepartment = async (req, res) => {
+
     try {
-        const {department, departmentName} = req.body;
+        const { department, departmentName } = req.body;
 
         if (!department || !departmentName) {
-            return res.status(400).json({
-                success: false,
-                message: "Department name and code are required."
-            });
+            return sendError(res, 400, 'Department code and name are required.');
         }
 
         const existingDept = await DepartmentModel.findOne({
-            $or: [
-                {department: department},
-                {departmentName: departmentName}
-            ]
+            $or: [{ department }, { departmentName }],
         });
 
         if (existingDept) {
-            return res.status(409).json({
-                success: false,
-                message: "Department already exists."
-            });
+            return sendError(res, 409, 'Department already exists.');
         }
 
-        const newDepartment = await DepartmentModel.create(req.body);
-
-        return res.status(200).json({
-            success: true,
-            message: "Department added successfully.",
-            data: newDepartment
-        });
-
+        const newDepartment = await DepartmentModel.create({ department, departmentName });
+        return sendSuccess(res, 201, 'Department added successfully.', { department: newDepartment });
+    
     } catch (error) {
-        console.error("Error while adding department:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error. Please try again later."
-        });
+        return sendError(res, 500, 'Error while adding department.', error);
     }
 };
 
-// ---------------------------------------------------------------------------------------------------------------------------------------------
-// Edit  Department 
-
+// -----------------------------------------------------------------------------
+// Update Department
+// -----------------------------------------------------------------------------
 
 const updateDepartment = async (req, res) => {
-    // console.log("dept", req.body)
+
     try {
-        const checkExist = await DepartmentModel.findOne({departmentName: req.body.departmentName});
-        if (checkExist) {
-            return res.status(409).json({
-                success: false,
-                message: "Department Name already exists."
-            });
-        }
-        const UpdateDept = await DepartmentModel.updateOne(
-            {department: req.body.department},
-            {$set: {departmentName: req.body.departmentName}}
-        )
-        res.status(200).json({
-            success: true,
-            message: "Department Updated.",
-            data: UpdateDept
-        })
-    } catch (e) {
 
-    }
-}
+        const { department, departmentName } = req.body;
 
-
-// ---------------------------------------------------------------------------------------------------------------------------------------------
-// Delete   Department 
-
-const deleteDepartment = async (req, res) => {
-    try {
-        const {department} = req.body;
-
-        const deleteDept = await DepartmentModel.deleteOne({department: department});
-
-        if (deleteDept.deletedCount === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Department not found."
-            });
+        if (!department || !departmentName) {
+            return sendError(res, 400, 'Department code and new name are required.');
         }
 
-        return res.status(200).json({
-            success: true,
-            message: "Department deleted successfully."
+        const existingDept = await DepartmentModel.findOne({
+            departmentName,  department: { $ne: department },
         });
 
+        if (existingDept) {
+            return sendError(res, 409, 'Another department with this name already exists.');
+        }
+
+        const updatedDept = await DepartmentModel.findOneAndUpdate(
+            { department }, { $set: { departmentName } }, { new: true }
+        );
+
+        if (!updatedDept) {
+            return sendError(res, 404, 'Department not found.');
+        }
+
+        return sendSuccess(res, 200, 'Department updated successfully.', { department: updatedDept });
     } catch (error) {
-        console.error("Error deleting department:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error. Please try again later."
-        });
+        return sendError(res, 500, 'Error while updating department.', error);
     }
 };
 
+// -----------------------------------------------------------------------------
+// Delete Department
+// -----------------------------------------------------------------------------
 
-module.exports = {fetchDepts, addDepartment, updateDepartment, deleteDepartment};
+const deleteDepartment = async (req, res) => {
+    
+    try {
+        const { department } = req.body;
+
+        if (!department) {
+            return sendError(res, 400, 'Department code is required to delete.');
+        }
+
+        const deletedDept = await DepartmentModel.findOneAndDelete({ department });
+
+        if (!deletedDept) {
+            return sendError(res, 404, 'Department not found.');
+        }
+
+        return sendSuccess(res, 200, 'Department deleted successfully.');
+    } catch (error) {
+        return sendError(res, 500, 'Error while deleting department.', error);
+    }
+};
+
+// -----------------------------------------------------------------------------
+// Exports
+// -----------------------------------------------------------------------------
+
+module.exports = {
+    fetchDepts,
+    addDepartment,
+    updateDepartment,
+    deleteDepartment,
+};

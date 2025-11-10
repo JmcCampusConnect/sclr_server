@@ -1,187 +1,194 @@
-const StudentModel = require('../../models/Student');
-const ApplicationModel = require('../../models/Application');
-const AcademicModel = require('../../models/Academic');
 const DonorModel = require('../../models/Donor');
 const TransactionModel = require('../../models/Transaction');
-const {currentAcademicYear} = require('../../utils/commonFunctions');
+const { currentAcademicYear } = require('../../utils/commonFunctions');
 
-// ---------------------------------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Utility response helpers
+// -----------------------------------------------------------------------------
 
-// Fetch donors
+const sendError = (res, status, message, error = null) => {
+    if (error) console.error(message, error);
+    return res.status(status).json({ success: false, message });
+};
+
+const sendSuccess = (res, status, message, data = {}) => {
+    return res.status(status).json({ success: true, message, ...data });
+};
+
+// -----------------------------------------------------------------------------
+// Fetch Donors
+// -----------------------------------------------------------------------------
 
 const fetchDonors = async (req, res) => {
-
     try {
-        const donors = await DonorModel.find().sort({createdAt: -1});
-        return res.json({donors});
+        const donors = await DonorModel.find().sort({ createdAt: -1 });
+        return sendSuccess(res, 200, 'Donors fetched successfully.', { donors });
     } catch (error) {
-        console.error('Error fetching donors : ', error);
-        return res.status(500).json({message: 'Server error while fetching donors.'});
+        return sendError(res, 500, 'Server error while fetching donors.', error);
     }
-}
+};
 
-// ---------------------------------------------------------------------------------------------------------------------------------------------
-
+// -----------------------------------------------------------------------------
 // Add Donor
+// -----------------------------------------------------------------------------
 
 const addDonor = async (req, res) => {
 
     try {
 
+        const {
+            donorName, donorType, mobileNo, emailId, panOrAadhaar, address,
+            district, state, pinCode, generalAmt = 0, zakkathAmt = 0,
+        } = req.body;
+        // console.log(req.body)
+
+        if (!donorName || !donorType) {
+            return sendError(res, 400, 'Donor Name and Donor Type are required.');
+        }
+
         const lastDonor = await DonorModel
             .findOne()
-            .sort({donorId: -1})
-            .collation({locale: "en_US", numericOrdering: true})
+            .sort({ donorId: -1 })
+            .collation({ locale: 'en_US', numericOrdering: true })
             .select('donorId');
 
-        const newDonorId = lastDonor ? parseInt(lastDonor.donorId) + 1 : 1;
+        const newDonorId = lastDonor ? (parseInt(lastDonor.donorId, 10) + 1).toString() : '1';
+        const academicYear = await currentAcademicYear();
 
-
-        const academicYear = await currentAcademicYear()
-        if (req.body.donarName == "" || req.body.donorType == "") {
-            return res.status(409).json({message: "Donor Name and Donor Type are required."});
-        }
-        // console.log("aca", academicYear)
         const donorData = {
-            academicYear: academicYear,
-            donorId: newDonorId.toString(),
-            donorName: req.body.donorName,
-            mobileNo: req.body.mobileNo,
-            emailId: req.body.emailId,
-            // academicYear: req.body.academicYear,
-            panOrAadhaar: req.body.panOrAadhaar,
-            address: req.body.address,
-            district: req.body.district,
-            state: req.body.state,
-            pinCode: req.body.pinCode,
-            donorType: req.body.donorType,
-            donorDate: req.body.donorDate,
-            generalAmt: req.body.generalAmt,
-            generalBal: req.body.generalAmt,
-            zakkathAmt: req.body.zakkathAmt,
-            zakkathBal: req.body.zakkathAmt,
-            panNo: req.body.panNo,
+            academicYear, donorId: newDonorId, donorName, mobileNo, donorType,
+            emailId, panOrAadhaar, address, district, state, pinCode,
+            generalAmt: Number(generalAmt),
+            generalBal: Number(generalAmt),
+            zakkathAmt: Number(zakkathAmt),
+            zakkathBal: Number(zakkathAmt),
         };
-        // console.log('first', donorData)
+
         const newDonor = await DonorModel.create(donorData);
 
-        const generalAmt = Number(req.body.generalAmt) || 0;
-        const zakkathAmt = Number(req.body.zakkathAmt) || 0;
-        let generalAmount = 0;
-        let zakkathAmount = 0;
-
-        if (generalAmt > 0) {
-            generalAmount = generalAmt;
-        }
-        if (zakkathAmt > 0) {
-            zakkathAmount = zakkathAmt;
-        }
-
         const transactionData = {
-            donorId: newDonorId.toString(),
-            donorName: req.body.donorName,
-            donorType: req.body.donorType,
-            generalAmt: generalAmount,
-            zakkathAmt: zakkathAmount
-        }
+            donorId: newDonorId, donorName, donorType,
+            generalAmt: Number(generalAmt) || 0,
+            zakkathAmt: Number(zakkathAmt) || 0
+        };
 
-        const addTransaction = await TransactionModel.create(transactionData)
-        res.json({success: true, donor: newDonor, transaction: addTransaction});
-    } catch (e) {
-        res.status(500).json({error: e.message});
+        const transaction = await TransactionModel.create(transactionData);
+
+        return sendSuccess(res, 201, 'Donor and initial transaction created successfully.', {
+            donor: newDonor, transaction
+        });
+
+    } catch (error) {
+        return sendError(res, 500, 'Server error while adding donor.', error);
     }
 };
 
-
-
-// ----------------------------------------------------------------------------------------------------------------
-
-// Update donor 
+// -----------------------------------------------------------------------------
+// Update Donor
+// -----------------------------------------------------------------------------
 
 const updateDonor = async (req, res) => {
 
-    const donor = req.body;
-
     try {
-        const updated = await DonorModel.updateOne(
-            {donorId: donor.donorId},
-            {$set: {...donor}}
+
+        const { donorId } = req.body;
+
+        if (!donorId) {
+            return sendError(res, 400, 'Donor ID is required to update donor.');
+        }
+
+        const updatedDonor = await DonorModel.findOneAndUpdate(
+            { donorId }, { $set: { ...req.body } }, { new: true }
         );
-        res.status(200).json(updated);
-    } catch (e) {
-        res.status(500).json({error: e.message});
+
+        if (!updatedDonor) { return sendError(res, 404, 'Donor not found.') }
+
+        return sendSuccess(res, 200, 'Donor updated successfully.', { donor: updatedDonor });
+    } catch (error) {
+        return sendError(res, 500, 'Server error while updating donor.', error);
     }
-}
+};
 
-// ----------------------------------------------------------------------------------------------------------------
-
-// Delete donor 
+// -----------------------------------------------------------------------------
+// Delete Donor
+// -----------------------------------------------------------------------------
 
 const deleteDonor = async (req, res) => {
 
     try {
 
-        const donorId = req.params.donorId;
-        const deleted = await DonorModel.deleteOne({donorId: donorId});
-        if (deleted.deletedCount === 0) {
-            return res.status(404).json({message: "Donor not found."});
+        const { donorId } = req.params;
+
+        if (!donorId) {
+            return sendError(res, 400, 'Donor ID is required to delete donor.');
         }
-        res.status(200).json({message: "Donor deleted successfully."});
-    } catch (e) {
-        res.status(500).json({error: e.message});
+
+        const deleted = await DonorModel.findOneAndDelete({ donorId });
+
+        if (!deleted) {
+            return sendError(res, 404, 'Donor not found.');
+        }
+
+        return sendSuccess(res, 200, 'Donor deleted successfully.');
+    } catch (error) {
+        return sendError(res, 500, 'Server error while deleting donor.', error);
     }
-}
+};
 
-// ----------------------------------------------------------------------------------------------------------------
-
-// ---------Add amt for Donor
+// -----------------------------------------------------------------------------
+// Add Amount for Donor
+// -----------------------------------------------------------------------------
 
 const addAmount = async (req, res) => {
+
     try {
-        const adAmt = await TransactionModel.create(req.body);
-        // console.log("Transaction saved:", adAmt);
 
-        const generalAmt = Number(req.body.generalAmt) || 0;
-        const zakkathAmt = Number(req.body.zakkathAmt) || 0;
+        const { donorId, generalAmt = 0, zakkathAmt = 0 } = req.body;
 
-        const donor = await DonorModel.findOne({donorId: req.body.donorId});
-
-        if (!donor) {
-            return res.status(404).json({success: false, message: "Donor not found."});
+        if (!donorId) {
+            return sendError(res, 400, 'Donor ID is required to add amount.');
         }
 
-        const updatedGeneralAmt = (donor.generalAmt || 0) + generalAmt;
-        const updatedGeneralBal = (donor.generalBal || 0) + generalAmt;
-        const updatedZakkathAmt = (donor.zakkathAmt || 0) + zakkathAmt;
-        const updatedZakkathBal = (donor.zakkathBal || 0) + zakkathAmt;
+        const donor = await DonorModel.findOne({ donorId });
+        if (!donor) {
+            return sendError(res, 404, 'Donor not found.');
+        }
+
+        const transaction = await TransactionModel.create(req.body);
+
+        const updatedGeneralAmt = (donor.generalAmt || 0) + Number(generalAmt);
+        const updatedGeneralBal = (donor.generalBal || 0) + Number(generalAmt);
+        const updatedZakkathAmt = (donor.zakkathAmt || 0) + Number(zakkathAmt);
+        const updatedZakkathBal = (donor.zakkathBal || 0) + Number(zakkathAmt);
 
         await DonorModel.updateOne(
-            {donorId: req.body.donorId},
+            { donorId },
             {
                 $set: {
                     generalAmt: updatedGeneralAmt,
                     generalBal: updatedGeneralBal,
                     zakkathAmt: updatedZakkathAmt,
-                    zakkathBal: updatedZakkathBal,
-                },
+                    zakkathBal: updatedZakkathBal
+                }
             }
         );
 
-        // console.log("Balance updated successfully");
-
-        res.status(200).json({
-            success: true,
-            message: "Transaction saved and donor balance updated successfully.",
-            transaction: adAmt,
+        return sendSuccess(res, 200, 'Transaction recorded and donor balance updated.', {
+            transaction
         });
-    } catch (e) {
-        console.error("Error while saving transaction:", e);
-        res.status(500).json({
-            success: false,
-            message: "Error while saving transaction.",
-            error: e.message,
-        });
+    } catch (error) {
+        return sendError(res, 500, 'Error while saving transaction.', error);
     }
 };
 
-module.exports = {fetchDonors, addDonor, updateDonor, deleteDonor, addAmount};
+// -----------------------------------------------------------------------------
+// Exports
+// -----------------------------------------------------------------------------
+
+module.exports = {
+    fetchDonors,
+    addDonor,
+    updateDonor,
+    deleteDonor,
+    addAmount
+};

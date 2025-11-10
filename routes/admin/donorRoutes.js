@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {fetchDonors, addDonor, updateDonor, deleteDonor, addAmount} = require('../../controller/admin/donorController');
+const { fetchDonors, addDonor, updateDonor, deleteDonor, addAmount } = require('../../controller/admin/donorController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
