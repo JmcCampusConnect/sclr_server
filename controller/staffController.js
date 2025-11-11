@@ -33,22 +33,11 @@ const getStudentCOE = async (req, res) => {
 
     try {
 
-        const condition = {
-            $or: [
-                { lastStudiedInstitutionPercentage: -1 },
-                { lastStudiedInstitutionPercentage: { $exists: false } }
-            ]
-        }
-
-        const StuData = await ApplicationModel.find({ $and: [condition, { semesterMarkPercentage: -1 }] })
-
-        const totalApplications = await ApplicationModel.countDocuments(condition);
-
-        const pending = await ApplicationModel.countDocuments({
-            ...condition,
-            semesterMarkPercentage: -1
-        })
-
+        const academicYear = await currentAcademicYear();
+        const filter = { academicYear, semester: { $nin: ["I"] }, semesterMarkPercentage: -1 };
+        const StuData = await ApplicationModel.find(filter);
+        const totalApplications = await ApplicationModel.countDocuments({ academicYear });
+        const pending = StuData.length
         const completed = totalApplications - pending;
 
         return res.status(200).json({
@@ -82,8 +71,12 @@ const saveStudentMark = async (req, res) => {
 
         const updates = await Promise.all(
             changedStudents.map(async (student) => {
+                const filter = student._id
+                    ? { _id: student._id }
+                    : { registerNo: student.registerNo };
+
                 return ApplicationModel.findOneAndUpdate(
-                    { registerNo: student.registerNo },
+                    filter,
                     {
                         $set: {
                             semesterMarkPercentage: student.semesterMarkPercentage,
@@ -98,8 +91,8 @@ const saveStudentMark = async (req, res) => {
 
         res.status(200).json({
             message: "Students updated successfully",
-            updatedStudents: updates,
-        })
+            updatedStudents: updates.filter((s) => s),
+        });
 
     } catch (error) {
         console.error("Error updating students for COE : ", error);
@@ -123,20 +116,18 @@ const getStudentClassAttendance = async (req, res) => {
         const staffData = await StaffModel.findOne({ staffId: userId });
 
         const totalCount = await ApplicationModel.countDocuments({
-            programCategory: condition, academicYear: ac_year,
+            category: condition, academicYear: ac_year,
         })
 
         const notMarkedCount = await ApplicationModel.countDocuments({
-            programCategory: condition,
-            academicYear: ac_year,
+            category: condition, academicYear: ac_year,
             classAttendancePercentage: -1,
         });
 
         const markedCount = totalCount - notMarkedCount;
 
         const studentData = await ApplicationModel.find({
-            programCategory: condition,
-            academicYear: ac_year,
+            category: condition, academicYear: ac_year,
             classAttendancePercentage: -1
         });
 
@@ -169,7 +160,7 @@ const saveClassAttendance = async (req, res) => {
         const ac_year = await currentAcademicYear();
         const updatePromises = enteredData.map(stu =>
             ApplicationModel.updateOne(
-                { registerNo: stu.regNo, academicYear: ac_year },
+                { registerNo: stu.regNo, academicYear: ac_year, _id: stu._id },
                 {
                     $set: {
                         classAttendancePercentage: stu.percentage,
@@ -201,37 +192,37 @@ const getStudentDM = async (req, res) => {
 
         case "JMCDM":
             condition = {
-                religion: "Muslim",
+                religion: "Islam",
                 academicYear: ac_year,
-                deeniyatMoralAttendancePercentage: -1,
-                programCategory: { $in: ["SFM", "Aided"] }
+                deeniyathMoralAttendancePercentage: -1,
+                category: { $in: ["SFM", "Aided"] }
             };
             break;
 
         case "JMCDW":
             condition = {
-                religion: "Muslim",
+                religion: "Islam",
                 academicYear: ac_year,
-                deeniyatMoralAttendancePercentage: -1,
-                programCategory: "SFW"
+                deeniyathMoralAttendancePercentage: -1,
+                category: "SFW"
             };
             break;
 
         case "JMCMM":
             condition = {
-                religion: { $ne: "Muslim" },
+                religion: { $ne: "Islam" },
                 academicYear: ac_year,
-                deeniyatMoralAttendancePercentage: -1,
-                programCategory: { $in: ["SFM", "Aided"] }
+                deeniyathMoralAttendancePercentage: -1,
+                category: { $in: ["SFM", "Aided"] }
             };
             break;
 
         case "JMCMW":
             condition = {
-                religion: { $ne: "Muslim" },
+                religion: { $ne: "Islam" },
                 academicYear: ac_year,
-                deeniyatMoralAttendancePercentage: -1,
-                programCategory: "SFW"
+                deeniyathMoralAttendancePercentage: -1,
+                category: "SFW"
             };
             break;
 
@@ -239,18 +230,16 @@ const getStudentDM = async (req, res) => {
     }
 
     try {
-        
+
         const students = await ApplicationModel.find(condition);
         const StaffData = await StaffModel.find({ staffId: userId })
 
         const completedCount = await ApplicationModel.countDocuments({
-            ...condition,
-            deeniyatMoralAttendancePercentage: { $ne: -1 }
+            ...condition, deeniyathMoralAttendancePercentage: { $ne: -1 }
         });
 
         const pendingCount = await ApplicationModel.countDocuments({
-            ...condition,
-            deeniyatMoralAttendancePercentage: -1
+            ...condition, deeniyathMoralAttendancePercentage: -1
         });
 
         const totalCount = completedCount + pendingCount;
@@ -287,7 +276,7 @@ const saveDMattendance = async (req, res) => {
                 update: {
                     $set: {
                         deeniyathMoralRemark: student.remark,
-                        deeniyatMoralAttendancePercentage: student.percentage
+                        deeniyathMoralAttendancePercentage: student.percentage
                     }
                 }
             }
