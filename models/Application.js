@@ -17,7 +17,7 @@ const applicationSchema = new mongoose.Schema({
     // 2. Scholarship Type & Related Info
     sclrType: { type: String, required: true, default: 'Fresher', enum: ['Fresher', 'Renewal'] },
     hasAppliedOtherScholarships: { type: String },
-    jamathLetter: { type: String, required: true },
+    jamathLetter: { type: String },
 
     // 3. Previous Study Details
     lastStudiedInstitution: { type: String },
@@ -37,7 +37,7 @@ const applicationSchema = new mongoose.Schema({
 
     // 6. Application Verification & Status
     tutorVerification: { type: Number, required: true, default: 0, enum: [0, 1, 2] },
-    applicationStatus: { type: Number, enum: [0, 1, 2], default: 0 },
+    applicationStatus: { type: Number, required: true, enum: [0, 1, 2], default: 0 },
     rejectionReasons: [{ type: String }],
     tutorVerificationDetails: {
         type: {
@@ -46,6 +46,7 @@ const applicationSchema = new mongoose.Schema({
             eligibleForZakkath: { type: Boolean, default: false },
             needyButNotZakkath: { type: Boolean, default: false },
             remarks: { type: String, default: '' },
+            verifiedBy: { type: String, default: '' },
             verifiedAt: { type: Date, default: null }
         },
         default: () => ({

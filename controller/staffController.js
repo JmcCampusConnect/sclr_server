@@ -142,7 +142,7 @@ const getStudentClassAttendance = async (req, res) => {
         })
 
     } catch (err) {
-        console.log("Error getting staff data and counts for class attendacne : ", err);
+        console.error("Error getting staff data and counts for class attendacne : ", err);
         res.status(500).json({ message: "Error fetching attendance data" });
     }
 }
@@ -192,7 +192,7 @@ const getStudentDM = async (req, res) => {
 
         case "JMCDM":
             condition = {
-                religion: "Islam",
+                religion: "Muslim",
                 academicYear: ac_year,
                 deeniyathMoralAttendancePercentage: -1,
                 category: { $in: ["SFM", "Aided"] }
@@ -201,7 +201,7 @@ const getStudentDM = async (req, res) => {
 
         case "JMCDW":
             condition = {
-                religion: "Islam",
+                religion: "Muslim",
                 academicYear: ac_year,
                 deeniyathMoralAttendancePercentage: -1,
                 category: "SFW"
@@ -210,7 +210,7 @@ const getStudentDM = async (req, res) => {
 
         case "JMCMM":
             condition = {
-                religion: { $ne: "Islam" },
+                religion: { $ne: "Muslim" },
                 academicYear: ac_year,
                 deeniyathMoralAttendancePercentage: -1,
                 category: { $in: ["SFM", "Aided"] }
@@ -219,7 +219,7 @@ const getStudentDM = async (req, res) => {
 
         case "JMCMW":
             condition = {
-                religion: { $ne: "Islam" },
+                religion: { $ne: "Muslim" },
                 academicYear: ac_year,
                 deeniyathMoralAttendancePercentage: -1,
                 category: "SFW"
@@ -254,7 +254,7 @@ const getStudentDM = async (req, res) => {
             StaffData: StaffData
         });
     } catch (error) {
-        console.log('Error in fetching students for DM : ', error)
+        console.error('Error in fetching students for DM : ', error)
         res.status(500).json({ error: error.message });
     }
 }

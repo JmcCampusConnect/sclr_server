@@ -13,7 +13,7 @@ const distributionSchema = new mongoose.Schema({
     // 3. Student Details
     registerNo: { type: String, required: true },
     name: { type: String, required: true },
-    department: { type: String, required: true },
+    department: { type: String, required: true },                                                            
     category: { type: String, required: true },
     graduate: { type: String, required: true },
     semester: { type: String, required: true },

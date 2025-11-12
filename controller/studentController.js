@@ -50,7 +50,7 @@ const checkRegisterNo = async (req, res) => {
 
 // -----------------------------------------------------------------------------------------------------------------
 
-// To dispaly the details for current academic year in student dashboard
+// Student details for student dashboard
 
 const studentStatus = async (req, res) => {
 
@@ -71,14 +71,14 @@ const studentStatus = async (req, res) => {
             return res.json({ success: false, message: 'Application does not exist' });
         }
     } catch (error) {
-        console.log('Error in fetching student data for student dashboard : ', error);
+        console.error('Error in fetching student data for student dashboard : ', error);
         return res.status(500).json({ status: 500, message: 'An error occurred while fetching the student data' });
     }
 }
 
 // -----------------------------------------------------------------------------------------------------------------
 
-// To display Data of students for login application menu
+// Student details for application menu
 
 const fetchStudentData = async (req, res) => {
 
@@ -106,37 +106,31 @@ const fetchStudentData = async (req, res) => {
             if (isDateEnded || applications.length >= 2) { canApply = false }
             else { canApply = true }
         }
-        else { if (isDateEnded || applications.length >= 1) canApply = false }
-
-        const latestApplication = await ApplicationModel.findOne({ registerNo }).sort({ _id: -1 }).lean();
-        const currentAcademic = await AcademicModel.findOne({ academicYear }).lean();
-        let lastYearCreditedAmount = 0;
-
-        const allAcademics = await AcademicModel.find({ academicId: { $lt: currentAcademic.academicId } }).sort({ academicId: -1 }).lean();
-
-        for (const prevAcademic of allAcademics) {
-            const distributions = await DistributionModel.find({ academicYear: prevAcademic.academicYear, registerNo }).lean();
-            if (distributions && distributions.length > 0) {
-                lastYearCreditedAmount = distributions.reduce((sum, entry) => sum + (entry.givenAmt || 0), 0);
-                break;
+        else {
+            if (isDateEnded || applications.length >= 1) {
+                canApply = false
+            }
+            else {
+                canApply = true
             }
         }
 
-        const studentApplnData = latestApplication ? { ...student, ...latestApplication } : { ...student };
-        if (canApply && "semester" in studentApplnData) {
-            const removeFields = [
-                "semester", "jamathLetter", "sclrType", "_id",
-                "lastStudiedInstitution", "lastStudiedInstitutionPercentage", "yearOfPassing",
-                "classAttendancePercentage", "classAttendanceRemark",
-                "deeniyathMoralAttendancePercentage", "deeniyathMoralRemark",
-                "semesterMarkPercentage", "semesterArrear", "semesterGrade",
-                "tutorVerification", "applicationStatus", "rejectionReasons",
-                "currentYearCreditedAmount", "totalCreditedAmount", "createdAt", "updatedAt", "__v"
-            ]
-            removeFields.forEach(field => delete studentApplnData[field]);
-        }
-        console.log(canApply)
-        return res.json({ status: 200, student: studentApplnData, canApply, lastYearCreditedAmount });
+        const latestApplication = await ApplicationModel.findOne({ registerNo }).sort({ _id: -1 }).lean();
+        const studentApplnData = JSON.parse(JSON.stringify(latestApplication ? { ...student, ...latestApplication } : { ...student }));
+
+        const removeFields = [
+            "jamathLetter", "sclrType", "_id",
+            "lastStudiedInstitution", "lastStudiedInstitutionPercentage", "yearOfPassing",
+            "classAttendancePercentage", "classAttendanceRemark",
+            "deeniyathMoralAttendancePercentage", "deeniyathMoralRemark",
+            "semesterMarkPercentage", "semesterArrear", "semesterGrade",
+            "tutorVerification", "applicationStatus", "rejectionReasons",
+            "createdAt", "updatedAt", "__v", "isSemBased", "tutorVerificationDetails"
+        ];
+
+        if (canApply) removeFields.push("semester");
+        removeFields.forEach(field => delete studentApplnData[field]);
+        return res.json({ status: 200, student: studentApplnData, canApply });
 
     } catch (err) {
         console.error("Error fetching student data for login application : ", err);
@@ -176,23 +170,29 @@ const registerApplication = async (req, res) => {
 
 const loginApplication = async (req, res) => {
 
-    // console.log(req.body)
+    const { academicYear } = req.body
 
     try {
 
-        const academicYear = await currentAcademicYear();
+        const currAcademicYear = await currentAcademicYear();
         const formData = { ...req.body };
+
+        formData.lastYearCreditedAmount = Number(formData.lastYearCreditedAmount) || 0;
+        formData.currentYearCreditedAmount = Number(formData.currentYearCreditedAmount) || 0;
+
+        if (currAcademicYear !== academicYear) {
+            formData.lastYearCreditedAmount = formData.currentYearCreditedAmount;
+            formData.currentYearCreditedAmount = 0;
+        }
         if (req.file) { formData.jamathLetter = req.file.path }
 
-        // Application save in application Table
-        const studentApplicationDetails = new ApplicationModel({ ...formData, academicYear });
-        savedStudent = await studentApplicationDetails.save();
+        const studentApplicationDetails = new ApplicationModel({ ...formData, academicYear: currAcademicYear });
+        await studentApplicationDetails.save();
 
         if (formData.registerNo) {
             const studentFields = Object.keys(StudentModel.schema.paths).filter(field => !['createdAt', 'updatedAt', '__v'].includes(field));
             const updateData = {};
             for (const key of Object.keys(formData)) { if (studentFields.includes(key)) { updateData[key] = formData[key] } }
-
             await StudentModel.findOneAndUpdate(
                 { registerNo: formData.registerNo },
                 { $set: updateData }, { new: true }
