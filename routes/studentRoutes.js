@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const { registerUser, studentStatus, registerApplication, checkRegisterNo, fetchStudentData,
-    loginApplication } = require('../controller/studentController');
+    loginApplication, passwordChange, forgotPassword } = require('../controller/studentController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -26,6 +26,8 @@ router.post('/registerApplication', upload.single('jamathLetter'), registerAppli
 router.post('/loginApplication', upload.single('jamathLetter'), loginApplication);
 router.get('/checkRegisterNo', checkRegisterNo);
 router.get('/fetchStudentData', fetchStudentData);
+router.put('/passwordChange', passwordChange);
+router.put('/forgotPassword', forgotPassword);
 
 // -----------------------------------------------------------------------------------------------------------------
 

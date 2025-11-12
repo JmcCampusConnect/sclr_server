@@ -50,6 +50,51 @@ const checkRegisterNo = async (req, res) => {
 
 // -----------------------------------------------------------------------------------------------------------------
 
+// To change password
+
+const passwordChange = async (req, res) => {
+
+    try {
+
+        const { registerNo, password } = req.body;
+
+        if (!registerNo || !password) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        const student = await StudentModel.findOneAndUpdate({ registerNo }, { password });
+
+        if (!student) return res.status(404).json({ message: "Student not found" });
+        return res.status(200).json({ message: "Password updated successfully" });
+
+    } catch (error) {
+        console.error("Error updating password : ", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+// -----------------------------------------------------------------------------------------------------------------
+
+// Forgot password
+
+const forgotPassword = async (req, res) => {
+
+    try {
+
+        const { registerNo, aadharNo, mobileNo, newPassword } = req.body;
+
+        const student = await StudentModel.findOneAndUpdate({ mobileNo, aadharNo, registerNo }, { password: newPassword });
+        if (!student) return res.status(404).json({ message: "Student not found" });
+        return res.status(200).json({ message: "Password updated successfully" });
+
+    } catch (error) {
+        console.error("Error updating password : ", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+// -----------------------------------------------------------------------------------------------------------------
+
 // Student details for student dashboard
 
 const studentStatus = async (req, res) => {
@@ -209,4 +254,4 @@ const loginApplication = async (req, res) => {
 
 // -----------------------------------------------------------------------------------------------------------------
 
-module.exports = { registerUser, studentStatus, registerApplication, checkRegisterNo, fetchStudentData, loginApplication }
+module.exports = { registerUser, passwordChange, studentStatus, registerApplication, forgotPassword, checkRegisterNo, fetchStudentData, loginApplication }
