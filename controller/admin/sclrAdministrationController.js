@@ -92,7 +92,6 @@ const sclrDistributions = async (req, res) => {
             const app = await ApplicationModel.findOne({ _id: s.applicationId });
             if (app) {
                 app.applicationStatus = 1;
-                app.reason = "Application has been approved";
                 app.currentYearCreditedAmount = (app.currentYearCreditedAmount || 0) + amt;
                 app.totalCreditedAmount = (app.totalCreditedAmount || 0) + amt;
                 await app.save({ validateBeforeSave: false });
@@ -134,12 +133,15 @@ const rejectApplications = async (req, res) => {
 
     try {
 
-        const { registerNo, reason, applicationId } = req.body;
+        const { registerNo, reasons, applicationId } = req.body;
         const academicYear = await currentAcademicYear()
 
         const updatedApp = await ApplicationModel.findOneAndUpdate(
             { registerNo, academicYear, _id: applicationId },
-            { $set: { applicationStatus: 2, reason: reason } },
+            {
+                $push: { rejectionReasons: { $each: reasons } },
+                $set: { applicationStatus: 2 }
+            },
             { new: true }
         )
 

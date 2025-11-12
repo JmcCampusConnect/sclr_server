@@ -88,13 +88,16 @@ const fetchStudentData = async (req, res) => {
 
         const academicYear = await currentAcademicYear();
         if (!academicYear) return res.status(404).json({ message: "Active academic year not found" });
-        const student = await StudentModel.findOne({ registerNo }).lean();
+
+        const student = await StudentModel.findOne({ registerNo })
+            .select('-governmentScholarship -createdAt -updatedAt -__v -_id')
+            .lean();
         if (!student) return res.status(404).json({ message: "Student not found" });
 
         const applications = await ApplicationModel.find({ registerNo, academicYear }).lean().sort({ _id: -1 });
         const academicData = await AcademicModel.findOne({ academicYear }).lean();
         const endDate = new Date(academicData.applnEndDate);
-        endDate.setHours(23, 59, 59, 999); 
+        endDate.setHours(23, 59, 59, 999);
         const isDateEnded = new Date() > endDate;
 
         let canApply = true;
@@ -127,11 +130,12 @@ const fetchStudentData = async (req, res) => {
                 "classAttendancePercentage", "classAttendanceRemark",
                 "deeniyathMoralAttendancePercentage", "deeniyathMoralRemark",
                 "semesterMarkPercentage", "semesterArrear", "semesterGrade",
-                "tutorVerification", "applicationStatus", "reason",
-                "currentYearCreditedAmount", "totalCreditedAmount"
+                "tutorVerification", "applicationStatus", "rejectionReasons",
+                "currentYearCreditedAmount", "totalCreditedAmount", "createdAt", "updatedAt", "__v"
             ]
             removeFields.forEach(field => delete studentApplnData[field]);
         }
+        console.log(canApply)
         return res.json({ status: 200, student: studentApplnData, canApply, lastYearCreditedAmount });
 
     } catch (err) {
@@ -174,9 +178,8 @@ const loginApplication = async (req, res) => {
 
     // console.log(req.body)
 
-    let savedStudent;
-
     try {
+
         const academicYear = await currentAcademicYear();
         const formData = { ...req.body };
         if (req.file) { formData.jamathLetter = req.file.path }
@@ -185,20 +188,17 @@ const loginApplication = async (req, res) => {
         const studentApplicationDetails = new ApplicationModel({ ...formData, academicYear });
         savedStudent = await studentApplicationDetails.save();
 
-        // Update the records in StudentModel
         if (formData.registerNo) {
-            const studentFields = Object.keys(StudentModel.schema.paths);
+            const studentFields = Object.keys(StudentModel.schema.paths).filter(field => !['createdAt', 'updatedAt', '__v'].includes(field));
             const updateData = {};
-            for (const key of Object.keys(formData)) {
-                if (studentFields.includes(key)) {
-                    updateData[key] = formData[key];
-                }
-            }
+            for (const key of Object.keys(formData)) { if (studentFields.includes(key)) { updateData[key] = formData[key] } }
+
             await StudentModel.findOneAndUpdate(
                 { registerNo: formData.registerNo },
                 { $set: updateData }, { new: true }
             )
         }
+
         return res.status(201).json({ status: 201, message: 'Application registered successfully' });
 
     } catch (error) {
@@ -208,4 +208,5 @@ const loginApplication = async (req, res) => {
 }
 
 // -----------------------------------------------------------------------------------------------------------------
+
 module.exports = { registerUser, studentStatus, registerApplication, checkRegisterNo, fetchStudentData, loginApplication }

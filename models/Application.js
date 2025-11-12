@@ -38,7 +38,7 @@ const applicationSchema = new mongoose.Schema({
     // 6. Application Verification & Status
     tutorVerification: { type: Number, required: true, default: 0, enum: [0, 1, 2] },
     applicationStatus: { type: Number, enum: [0, 1, 2], default: 0 },
-    reason: { type: String, required: true, default: 'Your Application is under Process' },
+    rejectionReasons: [{ type: String }],
     tutorVerificationDetails: {
         type: {
             orphanOrSingleParent: { type: Boolean, default: false },

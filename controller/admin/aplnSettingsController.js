@@ -51,7 +51,7 @@ const academicYearSet = async (req, res) => {
         if (!updatedYear) {
             return res.status(404).json({ error: 'Academic year not found.' });
         }
-
+        await StudentModel.updateMany({}, { isSemBased: 0 });
         res.status(200).json({ message: 'Academic year set to active successfully.' });
     } catch (error) {
         console.error('Error in updating academic year : ', error);

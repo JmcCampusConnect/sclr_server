@@ -34,7 +34,8 @@ const fetchTutors = async (req, res) => {
 const fetchDepartments = async (req, res) => {
     try {
         const departments = await DepartmentModel.find({}, { department: 1, departmentName: 1 })
-            .sort({ department: 1 });
+        .sort({ department: 1 });
+        // console.log(departments)
         return sendSuccess(res, 200, 'Departments fetched successfully.', { departments });
     } catch (error) {
         return sendError(res, 500, 'Server error while fetching departments.', error);
