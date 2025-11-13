@@ -32,20 +32,21 @@ const staffRoutes = require('./routes/staffRoutes');
 const authRoutes = require("./routes/authRoutes");
 const aplnSettingsRoutes = require("./routes/admin/aplnSettingsRoutes");
 const sclrAdministrationRoutes = require("./routes/admin/sclrAdministrationRoutes");
-const donorRoutes = require("./routes/admin/donorRoutes");
-const tutorRoutes = require("./routes/admin/tutorRoutes");
-const staffManageRoutes = require("./routes/admin/staffRoutes");
+const donorManageRoutes = require("./routes/admin/donorManageRoutes");
+const tutorManageRoutes = require("./routes/admin/tutorManageRoutes");
+const staffManageRoutes = require("./routes/admin/staffManageRoutes");
 const distributionRoutes = require("./routes/admin/distributionRoutes");
 const dashboardRoutes = require("./routes/admin/dashboardRoutes");
-const departmentRoutes = require("./routes/admin/deptRoutes");
+const deptManageRoutes = require("./routes/admin/deptManageRoutes");
 const reportRoutes = require("./routes/admin/reportRoutes");
 const changePasswordRoutes = require("./routes/admin/changePasswordRoutes");
+const studentManageRoutes = require("./routes/admin/studentManageRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
 // To load environment variables from .env to application
 
-dotenv.config({quiet: true});
+dotenv.config({ quiet: true });
 
 const app = express();
 app.use(express.json());
@@ -80,13 +81,14 @@ app.use('/api/student', studentRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/application/settings', aplnSettingsRoutes);
 app.use('/api/admin/application', sclrAdministrationRoutes);
-app.use('/api/donor', donorRoutes);
-app.use('/api/tutor', tutorRoutes);
+app.use('/api/donor', donorManageRoutes);
+app.use('/api/tutor', tutorManageRoutes);
 app.use('/api/staffManage', staffManageRoutes);
 app.use('/api/distribution', distributionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/dept', departmentRoutes);
+app.use('/api/dept', deptManageRoutes);
 app.use('/api/report', reportRoutes);
 app.use('/api/password', changePasswordRoutes);
+app.use('/api/studentManage', studentManageRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
