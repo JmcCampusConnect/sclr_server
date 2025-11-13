@@ -22,8 +22,23 @@ const fetchStudentData = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
+const passwordSemBasedChange = async (req, res) => {
 
+    const { registerNo } = req.params;
+    const { password, isSemBased } = req.body;
+
+    try {
+        await StudentModel.updateOne(
+            { registerNo },
+            { $set: { password, isSemBased } }
+        );
+        res.json({ success: true, message: "Student updated successfully" });
+    } catch (err) {
+        console.error("Error in saving student data : ", err);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
 
 // ----------------------------------------------------------------------------------------------------------------
 
-module.exports = { fetchStudentData }
+module.exports = { fetchStudentData, passwordSemBasedChange }
