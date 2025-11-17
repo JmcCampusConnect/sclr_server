@@ -1,7 +1,9 @@
 const ApplicationModel = require('../models/Application');
 const Staff = require('../models/Staff');
 const StaffModel = require('../models/Staff');
-const { currentAcademicYear } = require('../utils/commonFunctions')
+const StudentModel = require('../models/Student');
+const { currentAcademicYear } = require('../utils/commonFunctions');
+const mongoose = require("mongoose");
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -300,9 +302,98 @@ const saveDMattendance = async (req, res) => {
 
 const sclrStudents = async (req, res) => {
 
-   console.log('Trigger')
+    try {
+        let { page = 1, limit = 20, staffId } = req.query;
+
+        page = parseInt(page);
+        limit = parseInt(limit);
+        const skip = (page - 1) * limit;
+
+        let categories = [];
+        if (staffId === "JMCTPS") categories = ["SFM", "Aided"];
+        if (staffId === "JMCPPS") categories = ["SFW"];
+
+        const pendingFilter = {
+            category: categories.length === 1 ? categories[0] : { $in: categories },
+            governmentScholarship: 0
+        };
+
+        const completeFilter = {
+            category: categories.length === 1 ? categories[0] : { $in: categories },
+            governmentScholarship: { $in: [1, 2] }
+        };
+
+        const students = await StudentModel.find(pendingFilter, {
+            registerNo: 1,
+            name: 1,
+            category: 1,
+            governmentScholarship: 1,
+            department: 1
+        })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const total = await StudentModel.countDocuments(pendingFilter);
+        const pending = total;
+        const complete = await StudentModel.countDocuments(completeFilter);
+
+        return res.status(200).json({
+            success: true,
+            page, limit,
+            pages: Math.ceil(total / limit),
+            data: students,
+            total, pending, complete
+        });
+
+    } catch (error) {
+        console.error("Error fetching students for sclr staff : ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch student data",
+            error: error.message
+        });
+    }
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { getStudentCOE, saveStudentMark, sclrStudents, staffPasswordChange, getStudentClassAttendance, saveClassAttendance, getStudentDM, saveDMattendance }
+const submitAppliedScholarship = async (req, res) => {
+
+    try {
+        const { staffId, appliedList } = req.body;
+
+        if (!staffId) {
+            return res.status(400).json({ success: false, message: "staffId is required" });
+        }
+
+        if (!appliedList || typeof appliedList !== "object") {
+            return res.status(400).json({ success: false, message: "Invalid appliedList" });
+        }
+
+        const updateEntries = Object.entries(appliedList);
+
+        if (updateEntries.length === 0) {
+            return res.json({ success: true, message: "No changes to update" });
+        }
+
+        const updates = updateEntries.map(([id, value]) => ({
+            updateOne: {
+                filter: { _id: new mongoose.Types.ObjectId(id) },
+                update: { $set: { governmentScholarship: value } }
+            }
+        }));
+
+        await StudentModel.bulkWrite(updates);
+
+        res.json({ success: true, message: "Updated successfully" });
+
+    } catch (error) {
+        console.error("Scholarship Update Error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+
+
+module.exports = { getStudentCOE, submitAppliedScholarship, saveStudentMark, sclrStudents, staffPasswordChange, getStudentClassAttendance, saveClassAttendance, getStudentDM, saveDMattendance }
