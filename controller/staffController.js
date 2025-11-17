@@ -296,4 +296,13 @@ const saveDMattendance = async (req, res) => {
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { getStudentCOE, saveStudentMark, staffPasswordChange, getStudentClassAttendance, saveClassAttendance, getStudentDM, saveDMattendance }
+// Save Students for Deeniyath Moral 
+
+const sclrStudents = async (req, res) => {
+
+   console.log('Trigger')
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+
+module.exports = { getStudentCOE, saveStudentMark, sclrStudents, staffPasswordChange, getStudentClassAttendance, saveClassAttendance, getStudentDM, saveDMattendance }
