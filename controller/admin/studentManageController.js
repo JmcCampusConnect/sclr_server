@@ -7,7 +7,7 @@ const { currentAcademicYear } = require('../../utils/commonFunctions');
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-// Fetch donors
+// Fetch students
 
 const fetchStudentData = async (req, res) => {
 

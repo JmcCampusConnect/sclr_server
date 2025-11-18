@@ -303,6 +303,7 @@ const saveDMattendance = async (req, res) => {
 const sclrStudents = async (req, res) => {
 
     try {
+        
         let { page = 1, limit = 20, staffId } = req.query;
 
         page = parseInt(page);
