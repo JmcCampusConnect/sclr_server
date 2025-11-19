@@ -303,7 +303,7 @@ const saveDMattendance = async (req, res) => {
 const sclrStudents = async (req, res) => {
 
     try {
-        
+
         let { page = 1, limit = 20, staffId } = req.query;
 
         page = parseInt(page);
@@ -359,6 +359,7 @@ const sclrStudents = async (req, res) => {
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
+// For data saving for TPS and PPD
 const submitAppliedScholarship = async (req, res) => {
 
     try {
@@ -393,8 +394,98 @@ const submitAppliedScholarship = async (req, res) => {
         console.error("Scholarship Update Error:", error);
         res.status(500).json({ success: false, message: "Server Error" });
     }
-};
+}
 
+// -------------------------------------------------------------------------------------------------------------------------------------------------
 
+// For tutor verification fetch details
 
-module.exports = { getStudentCOE, submitAppliedScholarship, saveStudentMark, sclrStudents, staffPasswordChange, getStudentClassAttendance, saveClassAttendance, getStudentDM, saveDMattendance }
+const tutorStudents = async (req, res) => {
+    try {
+        const { userId } = req.query;
+
+        const staff = await StaffModel.findOne({ staffId: userId });
+
+        if (!staff) {
+            return res.status(404).json({ message: 'Staff member not found' });
+        }
+
+        const students = await StudentModel.find({
+            department: staff.department,
+            section: staff.section,   
+        });
+
+        const academicYear = await currentAcademicYear();
+
+        const studentRegNos = students.map(s => s.registerNumber);
+
+        const applications = await ApplicationModel.find({
+            yearOfAdmission: staff.batch,
+            tutorVerification: 0,
+            department: staff.department,
+            category: staff.category,
+            academicYear: academicYear,
+            registerNumber: { $in: studentRegNos }
+        });
+
+        return res.status(200).json(applications);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Server error' });
+    }
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+
+// For tutor verification fetch details
+
+const saveTutorVerification = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        const { tutorVerificationDetails, tutorVerification } = req.body;
+
+        if (!tutorVerificationDetails) {
+            return res.status(400).json({ message: "Missing verification details" });
+        }
+
+        if (![0, 1, 2].includes(tutorVerification)) {
+            return res.status(400).json({ message: "Invalid tutorVerification value" });
+        }
+
+        const updatedDoc = await ApplicationModel.findByIdAndUpdate(
+            id,
+            {
+                $set: {
+                    tutorVerificationDetails: tutorVerificationDetails,
+                    tutorVerification: tutorVerification
+                }
+            },
+            { new: true }
+        );
+
+        if (!updatedDoc) {
+            return res.status(404).json({ message: "Student application not found" });
+        }
+
+        return res.status(200).json({
+            message: "Tutor verification updated successfully",
+            data: updatedDoc
+        });
+
+    } catch (error) {
+        console.error("Error updating tutor verification:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+
+module.exports = {
+    getStudentCOE, submitAppliedScholarship, saveStudentMark, saveTutorVerification,
+    sclrStudents, staffPasswordChange, getStudentClassAttendance,
+    saveClassAttendance, getStudentDM, tutorStudents, saveDMattendance
+}
