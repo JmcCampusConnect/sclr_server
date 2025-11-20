@@ -41,6 +41,7 @@ const deptManageRoutes = require("./routes/admin/deptManageRoutes");
 const reportRoutes = require("./routes/admin/reportRoutes");
 const changePasswordRoutes = require("./routes/admin/changePasswordRoutes");
 const studentManageRoutes = require("./routes/admin/studentManageRoutes");
+const progressReportRoutes = require("./routes/admin/progressReportRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -90,5 +91,6 @@ app.use('/api/dept', deptManageRoutes);
 app.use('/api/report', reportRoutes);
 app.use('/api/password', changePasswordRoutes);
 app.use('/api/studentManage', studentManageRoutes);
+app.use('/api/progressReport', progressReportRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------

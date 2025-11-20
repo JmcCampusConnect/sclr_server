@@ -298,7 +298,7 @@ const saveDMattendance = async (req, res) => {
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Save Students for Deeniyath Moral 
+// Fetch students for TPS and PPS
 
 const sclrStudents = async (req, res) => {
 
@@ -310,45 +310,54 @@ const sclrStudents = async (req, res) => {
         limit = parseInt(limit);
         const skip = (page - 1) * limit;
 
+        const academicYear = await currentAcademicYear();
+
+        const registerNos = await ApplicationModel.distinct("registerNo", { academicYear });
+
+        if (registerNos.length === 0) {
+            return res.status(200).json({
+                success: true, page, limit, pages: 0,
+                data: [], total: 0, pending: 0, complete: 0
+            });
+        }
+
         let categories = [];
         if (staffId === "JMCTPS") categories = ["SFM", "Aided"];
         if (staffId === "JMCPPS") categories = ["SFW"];
 
+        const categoryFilter =
+            categories.length === 1 ? categories[0] : { $in: categories };
+
         const pendingFilter = {
-            category: categories.length === 1 ? categories[0] : { $in: categories },
+            registerNo: { $in: registerNos },
+            category: categoryFilter,
             governmentScholarship: 0
         };
 
         const completeFilter = {
-            category: categories.length === 1 ? categories[0] : { $in: categories },
+            registerNo: { $in: registerNos },
+            category: categoryFilter,
             governmentScholarship: { $in: [1, 2] }
         };
 
         const students = await StudentModel.find(pendingFilter, {
-            registerNo: 1,
-            name: 1,
-            category: 1,
-            governmentScholarship: 1,
-            department: 1
-        })
-            .skip(skip)
-            .limit(limit)
-            .lean();
+            registerNo: 1, name: 1, category: 1,
+            governmentScholarship: 1, department: 1
+        }).skip(skip).limit(limit).lean();
 
         const total = await StudentModel.countDocuments(pendingFilter);
         const pending = total;
         const complete = await StudentModel.countDocuments(completeFilter);
 
         return res.status(200).json({
-            success: true,
-            page, limit,
+            success: true, page, limit,
             pages: Math.ceil(total / limit),
-            data: students,
-            total, pending, complete
+            data: students, total,
+            pending, complete
         });
 
     } catch (error) {
-        console.error("Error fetching students for sclr staff : ", error);
+        console.error("Error fetching students for sclr staff:", error);
         return res.status(500).json({
             success: false,
             message: "Failed to fetch student data",
@@ -359,10 +368,12 @@ const sclrStudents = async (req, res) => {
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
-// For data saving for TPS and PPD
+// For data saving for TPS and PPS
+
 const submitAppliedScholarship = async (req, res) => {
 
     try {
+
         const { staffId, appliedList } = req.body;
 
         if (!staffId) {
@@ -401,6 +412,7 @@ const submitAppliedScholarship = async (req, res) => {
 // For tutor verification fetch details
 
 const tutorStudents = async (req, res) => {
+
     try {
         const { userId } = req.query;
 
@@ -412,7 +424,7 @@ const tutorStudents = async (req, res) => {
 
         const students = await StudentModel.find({
             department: staff.department,
-            section: staff.section,   
+            section: staff.section,
         });
 
         const academicYear = await currentAcademicYear();

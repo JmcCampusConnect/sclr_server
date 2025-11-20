@@ -36,7 +36,7 @@ const applicationSchema = new mongoose.Schema({
     semesterGrade: { type: String, required: true, default: 'A' },
 
     // 6. Application Verification & Status
-    tutorVerification: { type: Number, required: true, default: 0, enum: [0, 1, 2] },
+    tutorVerification: { type: Number, required: true, default: 0, enum: [0, 1] },
     applicationStatus: { type: Number, required: true, enum: [0, 1, 2], default: 0 },
     rejectionReasons: [{ type: String }],
     tutorVerificationDetails: {
