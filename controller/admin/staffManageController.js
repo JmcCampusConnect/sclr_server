@@ -10,7 +10,7 @@ const { currentAcademicYear } = require('../../utils/commonFunctions');
 // Fetch donors
 
 const fetchStaffs = async (req, res) => {
-    
+
     try {
         const staffs = await StaffModel.find({ role: 2 }).sort({ createdAt: -1 });
         return res.json({ staffs });
@@ -22,8 +22,36 @@ const fetchStaffs = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
+const updateStaff = async (req, res) => {
 
+    const { staffId, staffName, password } = req.body;
+
+    try {
+
+        const updated = await StaffModel.findOneAndUpdate(
+            { staffId },
+            { staffName, password },
+            { new: true }
+        );
+
+        if (!updated) {
+            return res.status(404).json({ message: "Staff not found" });
+        }
+
+        res.status(200).json({
+            message: "Staff updated successfully",
+            staff: updated
+        });
+
+    } catch (error) {
+        console.error('Error updating staff : ', error);
+        res.status(500).json({
+            message: "Error updating staff",
+            error: error.message
+        })
+    }
+}
 
 // ----------------------------------------------------------------------------------------------------------------
 
-module.exports = { fetchStaffs }
+module.exports = { fetchStaffs, updateStaff }

@@ -20,7 +20,7 @@ const sendSuccess = (res, status, message, data = {}) => {
 
 const fetchTutors = async (req, res) => {
     try {
-        const tutors = await StaffModel.find({ role: 3 }).sort({ createdAt: -1 });
+        const tutors = await StaffModel.find({ role: 2, category: { $ne: null } }).sort({ createdAt: -1 });
         return sendSuccess(res, 200, 'Tutors fetched successfully.', { tutors });
     } catch (error) {
         return sendError(res, 500, 'Server error while fetching tutors.', error);

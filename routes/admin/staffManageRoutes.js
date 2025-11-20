@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { fetchStaffs } = require('../../controller/admin/staffController');
+const { updateStaff,fetchStaffs } = require('../../controller/admin/staffManageController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
 router.get('/fetchStaffs', fetchStaffs);
+router.put('/updateStaff', updateStaff);
 
 // -----------------------------------------------------------------------------------------------------------------
 
-module.exports = router
+module.exports = router 
