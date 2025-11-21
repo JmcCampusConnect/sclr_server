@@ -235,15 +235,23 @@ const loginApplication = async (req, res) => {
         await studentApplicationDetails.save();
 
         if (formData.registerNo) {
+
             const studentFields = Object.keys(StudentModel.schema.paths).filter(field => !['createdAt', 'updatedAt', '__v'].includes(field));
-            const updateData = {};
-            for (const key of Object.keys(formData)) { if (studentFields.includes(key)) { updateData[key] = formData[key] } }
+            const updateData = { $set: {} };
+            for (const key of Object.keys(formData)) { if (studentFields.includes(key)) { updateData.$set[key] = formData[key] } }
+            if (formData.siblingsStatus === "No") {
+                updateData.$unset = {
+                    siblingsCount: "",
+                    siblingsOccupation: "",
+                    siblingsIncome: ""
+                };
+            }
             await StudentModel.findOneAndUpdate(
                 { registerNo: formData.registerNo },
-                { $set: updateData }, { new: true }
+                updateData,
+                { new: true }
             )
         }
-
         return res.status(201).json({ status: 201, message: 'Application registered successfully' });
 
     } catch (error) {
