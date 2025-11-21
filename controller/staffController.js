@@ -304,20 +304,17 @@ const sclrStudents = async (req, res) => {
 
     try {
 
-        let { page = 1, limit = 20, staffId } = req.query;
-
-        page = parseInt(page);
-        limit = parseInt(limit);
-        const skip = (page - 1) * limit;
-
+        let { staffId } = req.query;
         const academicYear = await currentAcademicYear();
-
         const registerNos = await ApplicationModel.distinct("registerNo", { academicYear });
 
         if (registerNos.length === 0) {
             return res.status(200).json({
-                success: true, page, limit, pages: 0,
-                data: [], total: 0, pending: 0, complete: 0
+                success: true,
+                data: [],
+                total: 0,
+                pending: 0,
+                complete: 0
             });
         }
 
@@ -325,8 +322,7 @@ const sclrStudents = async (req, res) => {
         if (staffId === "JMCTPS") categories = ["SFM", "Aided"];
         if (staffId === "JMCPPS") categories = ["SFW"];
 
-        const categoryFilter =
-            categories.length === 1 ? categories[0] : { $in: categories };
+        const categoryFilter = categories.length === 1 ? categories[0] : { $in: categories };
 
         const pendingFilter = {
             registerNo: { $in: registerNos },
@@ -341,30 +337,29 @@ const sclrStudents = async (req, res) => {
         };
 
         const students = await StudentModel.find(pendingFilter, {
-            registerNo: 1, name: 1, category: 1,
-            governmentScholarship: 1, department: 1
-        }).skip(skip).limit(limit).lean();
+            registerNo: 1, name: 1, category: 1, governmentScholarship: 1, department: 1
+        }).lean();
 
-        const total = await StudentModel.countDocuments(pendingFilter);
-        const pending = total;
+        const pending = students.length;
         const complete = await StudentModel.countDocuments(completeFilter);
 
         return res.status(200).json({
-            success: true, page, limit,
-            pages: Math.ceil(total / limit),
-            data: students, total,
+            success: true,
+            data: students,
+            total: students.length,
             pending, complete
         });
 
     } catch (error) {
-        console.error("Error fetching students for sclr staff:", error);
+        console.error("Error fetching students for sclr staff : ", error);
         return res.status(500).json({
             success: false,
             message: "Failed to fetch student data",
             error: error.message
         });
     }
-}
+};
+
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -437,7 +432,8 @@ const tutorStudents = async (req, res) => {
             department: staff.department,
             category: staff.category,
             academicYear: academicYear,
-            registerNumber: { $in: studentRegNos }
+            registerNumber: { $in: studentRegNos },
+            applicationStatus: 0
         });
 
         return res.status(200).json(applications);
