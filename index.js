@@ -27,6 +27,7 @@ const TransactionModel = require('./models/Transaction');
 
 // Routes Path
 
+const commonFunctions = require('./utils/commonFunctions');
 const studentRoutes = require('./routes/studentRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const authRoutes = require("./routes/authRoutes");
@@ -42,6 +43,7 @@ const reportRoutes = require("./routes/admin/reportRoutes");
 const changePasswordRoutes = require("./routes/admin/changePasswordRoutes");
 const studentManageRoutes = require("./routes/admin/studentManageRoutes");
 const progressReportRoutes = require("./routes/admin/progressReportRoutes");
+const applnManageRoutes = require("./routes/admin/applnManageRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -77,6 +79,7 @@ app.listen(PORT, () => {
 
 // Routes Link
 
+app.use("/api/common", commonFunctions);
 app.use("/auth", authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/staff', staffRoutes);
@@ -92,5 +95,6 @@ app.use('/api/report', reportRoutes);
 app.use('/api/password', changePasswordRoutes);
 app.use('/api/studentManage', studentManageRoutes);
 app.use('/api/progressReport', progressReportRoutes);
+app.use('/api/manage/appln', applnManageRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
