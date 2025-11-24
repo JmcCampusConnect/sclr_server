@@ -3,8 +3,8 @@ const ApplicationModel = require('../../models/Application');
 const AcademicModel = require('../../models/Academic');
 const DonorModel = require('../../models/Donor');
 const DistributionModel = require('../../models/Distribution');
-const { currentAcademicYear } = require('../../utils/commonFunctions');
-const { mongoose } = require('mongoose');
+const {currentAcademicYear} = require('../../utils/commonFunctions');
+const {mongoose} = require('mongoose');
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15,11 +15,11 @@ const fetchStudents = async (req, res) => {
     try {
 
         const currAcYear = await currentAcademicYear();
-        const allApplications = await ApplicationModel.find({ academicYear: currAcYear });
+        const allApplications = await ApplicationModel.find({academicYear: currAcYear});
 
         const combinedData = await Promise.all(
             allApplications.map(async (apln) => {
-                const student = await StudentModel.findOne({ registerNo: apln.registerNo });
+                const student = await StudentModel.findOne({registerNo: apln.registerNo});
                 const aplnData = apln.toObject();
                 const studentData = student ? student.toObject() : {};
                 return {
@@ -29,7 +29,7 @@ const fetchStudents = async (req, res) => {
             })
         )
 
-        return res.json({ data: combinedData });
+        return res.json({data: combinedData});
 
     } catch (error) {
         console.error("Error fetching students for admin application : ", error);
@@ -48,8 +48,8 @@ const fetchDonors = async (req, res) => {
 
     try {
         const currAcYear = await currentAcademicYear();
-        const donors = await DonorModel.find({ academicYear: currAcYear });
-        return res.json({ donors });
+        const donors = await DonorModel.find({academicYear: currAcYear});
+        return res.json({donors});
     } catch (error) {
         console.error("Error fetching donars for admin application : ", error);
         return res.status(500).json({
@@ -67,34 +67,34 @@ const sclrDistributions = async (req, res) => {
 
     try {
 
-        const { scholarships } = req.body;
+        const {scholarships} = req.body;
         const academicYear = await currentAcademicYear();
 
         // console.log(scholarships)
 
-        if (!scholarships || scholarships.length === 0) { return res.status(400).json({ message: "No scholarships provided." }) }
+        if (!scholarships || scholarships.length === 0) {return res.status(400).json({message: "No scholarships provided."})}
 
         const validDocs = [];
 
         for (const s of scholarships) {
 
-            const donor = await DonorModel.findOne({ donorId: s.donorId });
+            const donor = await DonorModel.findOne({donorId: s.donorId});
             if (!donor) {
                 console.warn(`Donor not found: ${s.donorId} (${s.donorName})`);
                 continue;
             }
             const amt = parseFloat(s.amount) || 0;
-            if (s.amtType === "generalBal") { donor.generalBal = (donor.generalBal || 0) - amt }
-            else if (s.amtType === "zakkathBal") { donor.zakkathBal = (donor.zakkathBal || 0) - amt }
+            if (s.amtType === "generalBal") {donor.generalBal = (donor.generalBal || 0) - amt}
+            else if (s.amtType === "zakkathBal") {donor.zakkathBal = (donor.zakkathBal || 0) - amt}
 
             await donor.save();
 
-            const app = await ApplicationModel.findOne({ _id: s.applicationId });
+            const app = await ApplicationModel.findOne({_id: s.applicationId});
             if (app) {
                 app.applicationStatus = 1;
                 app.currentYearCreditedAmount = (app.currentYearCreditedAmount || 0) + amt;
                 app.totalCreditedAmount = (app.totalCreditedAmount || 0) + amt;
-                await app.save({ validateBeforeSave: false });
+                await app.save({validateBeforeSave: false});
             } else {
                 console.warn(`Application not found for Register No : ${s.registerNo}`);
             }
@@ -109,7 +109,7 @@ const sclrDistributions = async (req, res) => {
         }
 
         if (validDocs.length === 0) {
-            return res.status(400).json({ message: "No valid scholarships — all donor IDs were invalid.", })
+            return res.status(400).json({message: "No valid scholarships — all donor IDs were invalid.", })
         }
 
         const saved = await DistributionModel.insertMany(validDocs);
@@ -121,7 +121,7 @@ const sclrDistributions = async (req, res) => {
 
     } catch (error) {
         console.error("Error saving scholarships ---- : ", error);
-        res.status(500).json({ message: "Server error", error: error.message });
+        res.status(500).json({message: "Server error", error: error.message});
     }
 }
 
@@ -133,16 +133,16 @@ const rejectApplications = async (req, res) => {
 
     try {
 
-        const { registerNo, reasons, applicationId } = req.body;
+        const {registerNo, reasons, applicationId} = req.body;
         const academicYear = await currentAcademicYear()
 
         const updatedApp = await ApplicationModel.findOneAndUpdate(
-            { registerNo, academicYear, _id: applicationId },
+            {registerNo, academicYear, _id: applicationId},
             {
-                $push: { rejectionReasons: { $each: reasons } },
-                $set: { applicationStatus: 2 }
+                $push: {rejectionReasons: {$each: reasons}},
+                $set: {applicationStatus: 2}
             },
-            { new: true }
+            {new: true}
         )
 
         if (!updatedApp) {
@@ -167,5 +167,98 @@ const rejectApplications = async (req, res) => {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
+// Fetch Students for Quick Rejection
 
-module.exports = { fetchStudents, fetchDonors, sclrDistributions, rejectApplications }
+const quickRejection = async (req, res) => {
+    try {
+        const academicYear = await currentAcademicYear();
+
+        const applications = await ApplicationModel.find({applicationStatus: 0, academicYear});
+
+        // Enrich each application with student financial fields and a combinedIncome value
+        const combined = await Promise.all(applications.map(async (appl) => {
+            const a = appl.toObject();
+            const student = await StudentModel.findOne({registerNo: a.registerNo});
+            const s = student ? student.toObject() : {};
+
+            const parentIncome = Number(s.parentAnnualIncome || 0);
+            const siblingsIncome = Number(s.siblingsIncome || 0);
+
+            const combinedIncome = parentIncome + siblingsIncome;
+
+            return {
+                ...a,
+                studentId: s._id || null,
+                parentAnnualIncome: parentIncome,
+                siblingsIncome: siblingsIncome,
+                combinedIncome,
+            };
+        }));
+
+        return res.status(200).json({application: combined});
+
+    } catch (e) {
+        console.error("Error in quickRejection: ", e);
+        return res.status(500).json({success: false, message: 'Server error fetching quick rejection data.'});
+    }
+}
+
+//--------------------------------------------------------------------------------
+// Qucik reject Applcations 
+
+const quickRejectApplications = async (req, res) => {
+    try {
+        const {applications} = req.body;
+        const academicYear = await currentAcademicYear();
+
+        if (!applications || !Array.isArray(applications) || applications.length === 0) {
+            return res.status(400).json({success: false, message: 'No applications provided for rejection.'});
+        }
+
+        const results = [];
+
+        for (const appData of applications) {
+            const {registerNo, reasons, applicationId} = appData;
+
+            if (!registerNo || !reasons || !Array.isArray(reasons)) {
+                results.push({registerNo: registerNo || '?', success: false, message: 'Missing registerNo or reasons.'});
+                continue;
+            }
+
+            try {
+                const updatedApp = await ApplicationModel.findOneAndUpdate(
+                    {registerNo, academicYear, _id: applicationId},
+                    {
+                        $push: {rejectionReasons: {$each: reasons}},
+                        $set: {applicationStatus: 2}
+                    },
+                    {new: true}
+                );
+
+                if (!updatedApp) {
+                    results.push({registerNo, success: false, message: 'Application not found.'});
+                } else {
+                    results.push({registerNo, success: true, message: 'Rejected successfully.', data: updatedApp});
+                    // console.log(`✓ Rejected ${registerNo} with reasons: ${reasons.join(', ')}`);
+                }
+            } catch (err) {
+                results.push({registerNo, success: false, message: err.message});
+                // console.error(`✗ Failed to reject ${registerNo}:`, err.message);
+            }
+        }
+
+        const succeeded = results.filter(r => r.success).length;
+        const failed = results.filter(r => !r.success).length;
+
+        return res.status(200).json({
+            success: true,
+            message: `Processed ${applications.length} applications. Succeeded: ${succeeded}, Failed: ${failed}.`,
+            results
+        });
+
+    } catch (e) {
+        // console.error('Error in quickRejectApplications:', e);
+        return res.status(500).json({success: false, message: 'Server error during bulk rejection.'});
+    }
+}
+module.exports = {fetchStudents, fetchDonors, sclrDistributions, rejectApplications, quickRejection, quickRejectApplications}
