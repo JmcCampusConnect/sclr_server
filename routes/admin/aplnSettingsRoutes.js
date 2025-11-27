@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {fetchAcademicYear, academicYearSet, fetchDates, updateDates, addAcademic, updateAcademicYear, deleteAcademicYear} = require('../../controller/admin/aplnSettingsController');
+const { fetchAcademicYear, academicYearSet, fetchDates, updateDates, addAcademic, updateAcademicYear, deleteAcademicYear } = require('../../controller/admin/aplnSettingsController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
