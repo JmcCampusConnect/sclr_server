@@ -130,7 +130,7 @@ const fetchStudentData = async (req, res) => {
     const { registerNo } = req.query;
 
     try {
-
+        
         const academicYear = await currentAcademicYear();
         if (!academicYear) return res.status(404).json({ message: "Active academic year not found" });
 
@@ -146,18 +146,24 @@ const fetchStudentData = async (req, res) => {
         const isDateEnded = new Date() > endDate;
 
         let canApply = true;
+        let adminCanApply = true;
 
         if (student.isSemBased === 1) {
             if (isDateEnded || applications.length >= 2) { canApply = false }
             else { canApply = true }
         }
         else {
-            if (isDateEnded || applications.length >= 1) {
-                canApply = false
-            }
-            else {
-                canApply = true
-            }
+            if (isDateEnded || applications.length >= 1) { canApply = false }
+            else { canApply = true }
+        }
+
+        if (student.isSemBased === 1) {
+            if (applications.length >= 2) { adminCanApply = false }
+            else { adminCanApply = true }
+        }
+        else {
+            if (applications.length >= 1) { adminCanApply = false }
+            else { adminCanApply = true }
         }
 
         const latestApplication = await ApplicationModel.findOne({ registerNo }).sort({ _id: -1 }).lean();
@@ -175,7 +181,7 @@ const fetchStudentData = async (req, res) => {
 
         if (canApply) removeFields.push("semester");
         removeFields.forEach(field => delete studentApplnData[field]);
-        return res.json({ status: 200, student: studentApplnData, canApply });
+        return res.json({ status: 200, student: studentApplnData, canApply, adminCanApply });
 
     } catch (err) {
         console.error("Error fetching student data for login application : ", err);
