@@ -49,7 +49,7 @@ const applnManageRoutes = require("./routes/admin/applnManageRoutes");
 
 // To load environment variables from .env to application
 
-dotenv.config({ quiet: true });
+dotenv.config({quiet: true});
 
 const app = express();
 app.use(express.json());
