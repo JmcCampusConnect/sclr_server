@@ -144,22 +144,27 @@ const fetchBarData = async (req, res) => {
 			},
 		};
 
+		const countUniqueRegisters = async (filter) => {
+			const uniqueRegisters = await DistributionModel.distinct("registerNo", filter);
+			return uniqueRegisters.length;
+		};
+
 		const distributed = {
 			ug: {
 				men: [
-					await DistributionModel.countDocuments({
+					await countUniqueRegisters({
 						academicYear,
 						graduate: "UG",
 						category: { $in: ["Aided", "SFM"] },
 						semester: { $in: ["I", "II"] },
 					}),
-					await DistributionModel.countDocuments({
+					await countUniqueRegisters({
 						academicYear,
 						graduate: "UG",
 						category: { $in: ["Aided", "SFM"] },
 						semester: { $in: ["III", "IV"] },
 					}),
-					await DistributionModel.countDocuments({
+					await countUniqueRegisters({
 						academicYear,
 						graduate: "UG",
 						category: { $in: ["Aided", "SFM"] },
@@ -167,19 +172,19 @@ const fetchBarData = async (req, res) => {
 					}),
 				],
 				women: [
-					await DistributionModel.countDocuments({
+					await countUniqueRegisters({
 						academicYear,
 						graduate: "UG",
 						category: "SFW",
 						semester: { $in: ["I", "II"] },
 					}),
-					await DistributionModel.countDocuments({
+					await countUniqueRegisters({
 						academicYear,
 						graduate: "UG",
 						category: "SFW",
 						semester: { $in: ["III", "IV"] },
 					}),
-					await DistributionModel.countDocuments({
+					await countUniqueRegisters({
 						academicYear,
 						graduate: "UG",
 						category: "SFW",
@@ -189,13 +194,13 @@ const fetchBarData = async (req, res) => {
 			},
 			pg: {
 				men: [
-					await DistributionModel.countDocuments({
+					await countUniqueRegisters({
 						academicYear,
 						graduate: "PG",
 						category: { $in: ["Aided", "SFM"] },
 						semester: { $in: ["I", "II"] },
 					}),
-					await DistributionModel.countDocuments({
+					await countUniqueRegisters({
 						academicYear,
 						graduate: "PG",
 						category: { $in: ["Aided", "SFM"] },
@@ -203,13 +208,13 @@ const fetchBarData = async (req, res) => {
 					}),
 				],
 				women: [
-					await DistributionModel.countDocuments({
+					await countUniqueRegisters({
 						academicYear,
 						graduate: "PG",
 						category: "SFW",
 						semester: { $in: ["I", "II"] },
 					}),
-					await DistributionModel.countDocuments({
+					await countUniqueRegisters({
 						academicYear,
 						graduate: "PG",
 						category: "SFW",
@@ -218,6 +223,7 @@ const fetchBarData = async (req, res) => {
 				],
 			},
 		};
+
 		res.json({ enrollment, distributed });
 
 	} catch (error) {
