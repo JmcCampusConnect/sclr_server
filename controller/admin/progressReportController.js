@@ -54,25 +54,35 @@ const fetchCounts = async (req, res) => {
 
         // ---- SCLR REPORT ----
 
-        const uniqueRegisters = await ApplicationModel.distinct("registerNo", { academicYear });
+        const uniqueRegisters = await ApplicationModel.distinct("registerNo", {
+            academicYear,
+            applicationStatus: 0
+        });
 
         const totalRegisters = uniqueRegisters.length;
 
-        const sclrFinished = await StudentModel.countDocuments({
-            registerNo: { $in: uniqueRegisters },
-            governmentScholarship: 1   
-        });
+        let sclrFinished = 0;
+
+        for (const reg of uniqueRegisters) {
+            const exists = await StudentModel.exists({
+                registerNo: reg,
+                governmentScholarship: 1
+            });
+            if (exists) sclrFinished++;
+        }
 
         const sclrPending = totalRegisters - sclrFinished;
 
         // ---- TUTOR REPORT ---- //
 
-        const tutorFinished = await ApplicationModel.countDocuments({
+        const tutorFinishedRegisters = await ApplicationModel.distinct("registerNo", {
             academicYear,
             tutorVerification: 1
         });
 
-        const tutorPending = totalApplicants - tutorFinished;
+        const tutorFinished = tutorFinishedRegisters.length;
+
+        const tutorPending = totalRegisters - tutorFinished;
 
         return res.json({
             coe: {
@@ -92,12 +102,12 @@ const fetchCounts = async (req, res) => {
             },
             sclr: {
                 finished: sclrFinished,
-                total: totalApplicants,
+                total: totalRegisters,
                 pending: sclrPending,
             },
             tutor: {
                 finished: tutorFinished,
-                total: totalApplicants,
+                total: totalRegisters,
                 pending: tutorPending,
             }
         });
