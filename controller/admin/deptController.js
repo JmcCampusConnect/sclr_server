@@ -33,6 +33,7 @@ const fetchDepts = async (req, res) => {
 const addDepartment = async (req, res) => {
 
     try {
+
         const { department, departmentName } = req.body;
 
         if (!department || !departmentName) {
@@ -49,7 +50,7 @@ const addDepartment = async (req, res) => {
 
         const newDepartment = await DepartmentModel.create({ department, departmentName });
         return sendSuccess(res, 201, 'Department added successfully.', { department: newDepartment });
-    
+
     } catch (error) {
         return sendError(res, 500, 'Error while adding department.', error);
     }
@@ -70,7 +71,7 @@ const updateDepartment = async (req, res) => {
         }
 
         const existingDept = await DepartmentModel.findOne({
-            departmentName,  department: { $ne: department },
+            departmentName, department: { $ne: department },
         });
 
         if (existingDept) {
@@ -96,8 +97,9 @@ const updateDepartment = async (req, res) => {
 // -----------------------------------------------------------------------------
 
 const deleteDepartment = async (req, res) => {
-    
+
     try {
+
         const { department } = req.body;
 
         if (!department) {

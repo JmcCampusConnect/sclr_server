@@ -7,11 +7,11 @@ const DepartmentModel = require('../../models/Department');
 
 const sendError = (res, status, message, error = null) => {
     if (error) console.error(message, error);
-    return res.status(status).json({success: false, message});
+    return res.status(status).json({ success: false, message });
 };
 
 const sendSuccess = (res, status, message, data = {}) => {
-    return res.status(status).json({success: true, message, ...data});
+    return res.status(status).json({ success: true, message, ...data });
 };
 
 // -----------------------------------------------------------------------------
@@ -20,8 +20,8 @@ const sendSuccess = (res, status, message, data = {}) => {
 
 const fetchTutors = async (req, res) => {
     try {
-        const tutors = await StaffModel.find({role: 2, category: {$ne: null}}).sort({createdAt: -1});
-        return sendSuccess(res, 200, 'Tutors fetched successfully.', {tutors});
+        const tutors = await StaffModel.find({ role: 2, category: { $ne: null } }).sort({ createdAt: -1 });
+        return sendSuccess(res, 200, 'Tutors fetched successfully.', { tutors });
     } catch (error) {
         return sendError(res, 500, 'Server error while fetching tutors.', error);
     }
@@ -33,10 +33,10 @@ const fetchTutors = async (req, res) => {
 
 const fetchDepartments = async (req, res) => {
     try {
-        const departments = await DepartmentModel.find({}, {department: 1, departmentName: 1})
-            .sort({department: 1});
+        const departments = await DepartmentModel.find({}, { department: 1, departmentName: 1 })
+            .sort({ department: 1 });
         // console.log(departments)
-        return sendSuccess(res, 200, 'Departments fetched successfully.', {departments});
+        return sendSuccess(res, 200, 'Departments fetched successfully.', { departments });
     } catch (error) {
         return sendError(res, 500, 'Server error while fetching departments.', error);
     }
@@ -50,13 +50,13 @@ const addTutor = async (req, res) => {
 
     try {
 
-        const {staffId, staffName, batch, department, category, section} = req.body;
+        const { staffId, staffName, batch, department, category, section } = req.body;
 
         if (!staffId || !staffName || !batch || !department || !category || !section) {
             return sendError(res, 400, 'All fields are required to add a tutor.');
         }
 
-        const existingTutor = await StaffModel.findOne({staffId});
+        const existingTutor = await StaffModel.findOne({ staffId });
         if (existingTutor) {
             return sendError(res, 400, 'Tutor with this Staff ID already exists.');
         }
@@ -66,7 +66,7 @@ const addTutor = async (req, res) => {
             category, section, role: 2, password: 'JMC',
         });
         await newTutor.save();
-        return sendSuccess(res, 201, 'Tutor added successfully.', {tutor: newTutor});
+        return sendSuccess(res, 201, 'Tutor added successfully.', { tutor: newTutor });
     } catch (error) {
         return sendError(res, 500, 'Server error while adding tutor.', error);
     }
@@ -80,21 +80,21 @@ const updateTutor = async (req, res) => {
 
     try {
 
-        const {staffId, staffName, batch, department, category, section} = req.body;
+        const { staffId, staffName, batch, department, category, section } = req.body;
 
         if (!staffId || !staffName || !batch || !department || !category || !section) {
             return sendError(res, 400, 'All fields are required to update a tutor.');
         }
 
         const updatedTutor = await StaffModel.findOneAndUpdate(
-            {staffId},
-            {staffName, batch, department, category, section},
-            {new: true}
+            { staffId },
+            { staffName, batch, department, category, section },
+            { new: true }
         );
 
-        if (!updatedTutor) {return sendError(res, 404, 'Tutor not found.')}
+        if (!updatedTutor) { return sendError(res, 404, 'Tutor not found.') }
 
-        return sendSuccess(res, 200, 'Tutor updated successfully.', {tutor: updatedTutor});
+        return sendSuccess(res, 200, 'Tutor updated successfully.', { tutor: updatedTutor });
     } catch (error) {
         return sendError(res, 500, 'Server error while updating tutor.', error);
     }
@@ -107,13 +107,14 @@ const updateTutor = async (req, res) => {
 const deleteTutor = async (req, res) => {
 
     try {
-        const {staffId} = req.body;
+
+        const { staffId } = req.body;
 
         if (!staffId) {
             return sendError(res, 400, 'Staff ID is required to delete a tutor.');
         }
 
-        const deletedTutor = await StaffModel.findOneAndDelete({staffId});
+        const deletedTutor = await StaffModel.findOneAndDelete({ staffId });
 
         if (!deletedTutor) {
             return sendError(res, 404, 'Tutor not found.');

@@ -40,7 +40,6 @@ const addDonor = async (req, res) => {
             donorName, donorType, mobileNo, emailId, panOrAadhaar, address,
             district, state, pinCode, generalAmt = 0, zakkathAmt = 0,
         } = req.body;
-        // console.log(req.body)
 
         if (!donorName || !donorType) {
             return sendError(res, 400, 'Donor Name and Donor Type are required.');
