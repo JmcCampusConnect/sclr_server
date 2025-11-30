@@ -110,7 +110,7 @@ const studentStatus = async (req, res) => {
         if (application && applicant) {
             const applicationObj = application.toObject();
             const applicantObj = applicant.toObject();
-            const studentData = { ...applicantObj, ...applicationObj };
+            const studentData = { ...applicantObj, ...applicationObj, applicationId: applicationObj._id };
             return res.json({ status: 200, student: studentData });
         } else {
             return res.json({ success: false, message: 'Application does not exist' });
@@ -130,7 +130,7 @@ const fetchStudentData = async (req, res) => {
     const { registerNo } = req.query;
 
     try {
-        
+
         const academicYear = await currentAcademicYear();
         if (!academicYear) return res.status(404).json({ message: "Active academic year not found" });
 
