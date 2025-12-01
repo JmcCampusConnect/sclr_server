@@ -65,12 +65,24 @@ const academicYearSet = async (req, res) => {
 // To Upsert date for application
 
 const updateDates = async (req, res) => {
+
     const { applnStartDate, applnEndDate } = req.body;
+
     const currAcYear = await currentAcademicYear();
-    await AcademicModel.findOneAndUpdate({ academicYear: currAcYear },
-        { applnStartDate, applnEndDate }, { upsert: true });
-    res.send('Dates Saved');
-}
+
+    await AcademicModel.findOneAndUpdate(
+        { academicYear: currAcYear },
+        {
+            applnStartDate: new Date(applnStartDate),
+            applnEndDate: new Date(applnEndDate)
+        },
+        { upsert: true }
+    );
+
+    res.json({ status: 200, message: 'Dates updated successfully' });
+
+};
+
 
 // ----------------------------------------------------------------------------------------------------------------
 
