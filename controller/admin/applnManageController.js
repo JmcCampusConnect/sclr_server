@@ -1,11 +1,6 @@
-const StaffModel = require('../../models/Staff');
 const StudentModel = require('../../models/Student');
 const ApplicationModel = require('../../models/Application');
-const AcademicModel = require('../../models/Academic');
-const DonorModel = require('../../models/Donor');
-const DistributionModel = require('../../models/Distribution');
 const { currentAcademicYear } = require('../../utils/commonFunctions');
-const { mongoose } = require('mongoose');
 
 // ----------------------------------------------------------------------------------------------------------------
 
@@ -19,15 +14,28 @@ const fetchApplicationData = async (req, res) => {
         if (!academicYear) { return res.status(400).json({ message: "Academic year not found." }) }
 
         const applications = await ApplicationModel.find(
-            { academicYear, applicationStatus: 0 }, { __v: 0 }
+            { academicYear, applicationStatus: 0 },
         ).lean();
+
+        for (const app of applications) {
+
+            const student = await StudentModel.findOne(
+                { registerNo: app.registerNo },
+            ).lean();
+
+            app.applicationId = app._id;
+
+            if (student) {
+                app.studentId = student._id;
+                Object.assign(app, student);
+            } else { app.studentId = null }
+        }
 
         if (!applications.length) { return res.status(404).json({ message: "No pending applications found.", data: [] }) }
 
         return res.status(200).json({
             message: "Applications fetched successfully.",
-            count: applications.length,
-            data: applications
+            count: applications.length, data: applications
         });
 
     } catch (error) {
