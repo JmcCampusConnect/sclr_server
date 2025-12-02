@@ -306,7 +306,9 @@ const sclrStudents = async (req, res) => {
 
         let { staffId } = req.query;
         const academicYear = await currentAcademicYear();
-        const registerNos = await ApplicationModel.distinct("registerNo", { academicYear });
+        const registerNos = await ApplicationModel.distinct("registerNo", {
+            academicYear, applicationStatus: 0
+        });
 
         if (registerNos.length === 0) {
             return res.status(200).json({
