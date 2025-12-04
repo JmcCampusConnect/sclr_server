@@ -142,7 +142,7 @@ const addAmount = async (req, res) => {
 
     try {
 
-        const { donorId, generalAmt = 0, zakkathAmt = 0 } = req.body;
+        let { donorId, generalAmt, zakkathAmt } = req.body;
 
         if (!donorId) {
             return sendError(res, 400, 'Donor ID is required to add amount.');
@@ -153,12 +153,19 @@ const addAmount = async (req, res) => {
             return sendError(res, 404, 'Donor not found.');
         }
 
-        const transaction = await TransactionModel.create(req.body);
+        const generalAmount = Number(generalAmt ?? 0);
+        const zakkathAmount = Number(zakkathAmt ?? 0);
 
-        const updatedGeneralAmt = (donor.generalAmt || 0) + Number(generalAmt);
-        const updatedGeneralBal = (donor.generalBal || 0) + Number(generalAmt);
-        const updatedZakkathAmt = (donor.zakkathAmt || 0) + Number(zakkathAmt);
-        const updatedZakkathBal = (donor.zakkathBal || 0) + Number(zakkathAmt);
+        const transaction = await TransactionModel.create({
+            ...req.body,
+            generalAmt: generalAmount,
+            zakkathAmt: zakkathAmount
+        });
+
+        const updatedGeneralAmt = (donor.generalAmt || 0) + generalAmount;
+        const updatedGeneralBal = (donor.generalBal || 0) + generalAmount;
+        const updatedZakkathAmt = (donor.zakkathAmt || 0) + zakkathAmount;
+        const updatedZakkathBal = (donor.zakkathBal || 0) + zakkathAmount;
 
         await DonorModel.updateOne(
             { donorId },
@@ -172,13 +179,12 @@ const addAmount = async (req, res) => {
             }
         );
 
-        return sendSuccess(res, 200, 'Transaction recorded and donor balance updated.', {
-            transaction
-        });
+        return sendSuccess(res, 200, 'Transaction recorded and donor balance updated.', { transaction });
+
     } catch (error) {
         return sendError(res, 500, 'Error while saving transaction.', error);
     }
-};
+}
 
 // -----------------------------------------------------------------------------
 // Exports

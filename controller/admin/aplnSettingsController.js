@@ -118,7 +118,7 @@ const addAcademic = async (req, res) => {
             applnEndDate: endDate,
             active: isActive ? 1 : 0
         });
-        return res.status(200).json({ message: "Academic Year Added", addedData: responseAdd })
+        return res.status(200).json({ message: "Academic year added", addedData: responseAdd })
     } catch (error) {
         console.error('Error in Adding Academic Year : ', error);
         return res.status(500).json({ message: "Something wrong with server" })
@@ -150,7 +150,7 @@ const updateAcademicYear = async (req, res) => {
             }
         );
 
-        return res.status(200).json({ message: "Academic year Data Updated successfully", update });
+        return res.status(200).json({ message: "Academic year data updated successfully", update });
 
     } catch (error) {
         console.error('Error in updating Academic Year : ', error);
@@ -169,7 +169,7 @@ const deleteAcademicYear = async (req, res) => {
         const { academicId } = req.params;
 
         const isActive = await AcademicModel.findOne({ academicId })
-        if (isActive.active == 1) { return res.status(403).json({ message: "Cannot delete the Active Academic Year" }) }
+        if (isActive.active == 1) { return res.status(403).json({ message: "Cannot delete the active academic year" }) }
         if (!academicId) { return res.status(400).json({ message: "academicId is required" }) }
 
         const deleted = await AcademicModel.deleteOne({ academicId });
