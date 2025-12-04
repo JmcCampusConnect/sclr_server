@@ -58,7 +58,6 @@ const applicationSchema = new mongoose.Schema({
     // 7. Financial Details
     lastYearCreditedAmount: { type: Number, default: 0 },
     currentYearCreditedAmount: { type: Number, default: 0 },
-    totalCreditedAmount: { type: Number, default: 0 },
 
 }, { timestamps: true });
 

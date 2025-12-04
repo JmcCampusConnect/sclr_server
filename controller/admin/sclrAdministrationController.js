@@ -93,8 +93,14 @@ const sclrDistributions = async (req, res) => {
             if (app) {
                 app.applicationStatus = 1;
                 app.currentYearCreditedAmount = (app.currentYearCreditedAmount || 0) + amt;
-                app.totalCreditedAmount = (app.totalCreditedAmount || 0) + amt;
                 await app.save({ validateBeforeSave: false });
+                const student = await StudentModel.findOne({ registerNo: s.registerNo });
+                if (student) {
+                    student.totalCreditedAmount = (student.totalCreditedAmount || 0) + amt;
+                    await student.save();
+                } else {
+                    console.warn(`Student not found : ${s.registerNo}`);
+                }
             } else {
                 console.warn(`Application not found for Register No : ${s.registerNo}`);
             }

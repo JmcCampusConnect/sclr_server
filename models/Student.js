@@ -39,6 +39,7 @@ const studentSchema = new mongoose.Schema({
     hostelStatus: { type: String, enum: ['Yes', 'No'], default: 'No' },
     governmentScholarship: { type: Number, required: true, default: 0, enum: [0, 1, 2] },
     isSemBased: { type: Number, required: true, default: 0, enum: [0, 1] },
+    totalCreditedAmount: { type: Number, default: 0 },
 
 }, { timestamps: true });
 
