@@ -63,7 +63,7 @@ const addTutor = async (req, res) => {
 
         const newTutor = new StaffModel({
             staffId, staffName, batch, department,
-            category, section, role: 2, password: 'JMC',
+            category, section, role: 2, password: 'jmc',
         });
         await newTutor.save();
         return sendSuccess(res, 201, 'Tutor added successfully.', { tutor: newTutor });
