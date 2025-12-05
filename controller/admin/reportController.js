@@ -80,7 +80,6 @@ const fetchDonorTransactions = async (req, res) => {
 
         const academicYear = await currentAcademicYear();
         const transactions = await TransactionModel.find({ academicYear }).sort({ createdAt: -1 });
-        console.log(transactions)
         res.status(200).json({ transactions });
 
     } catch (error) {

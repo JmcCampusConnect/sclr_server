@@ -116,7 +116,6 @@ const sclrDistributions = async (req, res) => {
                     previousApp.currentYearCreditedAmount =
                         (previousApp.currentYearCreditedAmount || 0) + amt;
                     await previousApp.save({ validateBeforeSave: false });
-                    console.log(`Previous application also updated for ${s.registerNo}`);
                 }
             }
 
