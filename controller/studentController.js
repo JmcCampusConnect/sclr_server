@@ -228,7 +228,7 @@ const registerApplication = async (req, res) => {
 
 const loginApplication = async (req, res) => {
 
-    const { academicYear } = req.body
+    const { academicYear } = req.body;
 
     try {
 

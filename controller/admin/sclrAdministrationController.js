@@ -106,6 +106,20 @@ const sclrDistributions = async (req, res) => {
                 console.warn(`Application not found for Register No : ${s.registerNo}`);
             }
 
+            if (app) {
+                const previousApp = await ApplicationModel.findOne({
+                    registerNo: s.registerNo,
+                    academicYear: app.academicYear,
+                    _id: { $ne: app._id }
+                });
+                if (previousApp) {
+                    previousApp.currentYearCreditedAmount =
+                        (previousApp.currentYearCreditedAmount || 0) + amt;
+                    await previousApp.save({ validateBeforeSave: false });
+                    console.log(`Previous application also updated for ${s.registerNo}`);
+                }
+            }
+
             validDocs.push({
                 academicYear, sclrType: s.sclrType, registerNo: s.registerNo,
                 name: s.name, department: s.department, donorType: s.donorType,
@@ -211,7 +225,7 @@ const quickRejection = async (req, res) => {
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
 // Quick reject Applications 
- 
+
 const quickRejectApplications = async (req, res) => {
 
     try {

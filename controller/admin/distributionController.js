@@ -13,7 +13,8 @@ const { mongoose } = require('mongoose');
 const fetchDistribution = async (req, res) => {
 
     try {
-        const distributions = await DistributionModel.find().sort({ createdAt: -1 });
+        const academicYear = await currentAcademicYear();
+        const distributions = await DistributionModel.find({ academicYear }).sort({ createdAt: -1 });
         return res.json({ distributions });
     } catch (error) {
         console.error('Error fetching distribution statements : ', error);
@@ -24,6 +25,7 @@ const fetchDistribution = async (req, res) => {
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
 const fetchCardsData = async (req, res) => {
+
     try {
         const academicYear = await currentAcademicYear();
         const totalApplicants = await ApplicationModel.countDocuments({ academicYear });
