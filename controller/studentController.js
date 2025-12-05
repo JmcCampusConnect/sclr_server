@@ -99,25 +99,32 @@ const forgotPassword = async (req, res) => {
 
 const studentStatus = async (req, res) => {
 
-    const { registerNo } = req.query;
-
     try {
 
+        const { registerNo } = req.query;
         const academicYear = await currentAcademicYear();
-        let applicant = await StudentModel.findOne({ registerNo })
-        let application = await ApplicationModel.findOne({ registerNo, academicYear }).sort({ _id: -1 });;
 
-        if (application && applicant) {
-            const applicationObj = application.toObject();
-            const applicantObj = applicant.toObject();
-            const studentData = { ...applicantObj, ...applicationObj, applicationId: applicationObj._id };
-            return res.json({ status: 200, student: studentData });
-        } else {
-            return res.json({ success: false, message: 'Application does not exist' });
+        const applicant = await StudentModel.findOne({ registerNo }).lean();
+        if (!applicant) {
+            return res.status(404).json({ success: false, message: "Student not found" });
         }
-    } catch (error) {
-        console.error('Error in fetching student data for student dashboard : ', error);
-        return res.status(500).json({ status: 500, message: 'An error occurred while fetching the student data' });
+
+        const applicationArr = await ApplicationModel.find({ registerNo, academicYear })
+            .sort({ _id: -1 })
+            .limit(1)
+            .lean();
+        const application = applicationArr[0];
+
+        if (!application) {
+            return res.status(404).json({ success: false, message: "Registration number not found" });
+        }
+
+        const studentData = { ...applicant, ...application, applicationId: application._id };
+        return res.status(200).json({ success: true, student: studentData });
+
+    } catch (err) {
+        console.error('Error in student status : ', err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
