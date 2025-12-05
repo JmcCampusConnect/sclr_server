@@ -2,8 +2,9 @@ const mongoose = require('mongoose');
 
 
 const transactionSchema = new mongoose.Schema({
-    
+
     // 1. Donor Identification
+    academicYear: { type: String, required: true },
     donorId: { type: String, required: true },
     donorName: { type: String, required: true },
     donorType: { type: String, required: true },

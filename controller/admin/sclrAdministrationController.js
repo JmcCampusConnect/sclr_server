@@ -92,6 +92,7 @@ const sclrDistributions = async (req, res) => {
             const app = await ApplicationModel.findOne({ _id: s.applicationId });
             if (app) {
                 app.applicationStatus = 1;
+                app.rejectionReasons = [];
                 app.currentYearCreditedAmount = (app.currentYearCreditedAmount || 0) + amt;
                 await app.save({ validateBeforeSave: false });
                 const student = await StudentModel.findOne({ registerNo: s.registerNo });
@@ -210,7 +211,7 @@ const quickRejection = async (req, res) => {
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
 // Quick reject Applications 
-
+ 
 const quickRejectApplications = async (req, res) => {
 
     try {

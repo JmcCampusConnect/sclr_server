@@ -68,7 +68,8 @@ const addDonor = async (req, res) => {
         const transactionData = {
             donorId: newDonorId, donorName, donorType,
             generalAmt: Number(generalAmt) || 0,
-            zakkathAmt: Number(zakkathAmt) || 0
+            zakkathAmt: Number(zakkathAmt) || 0,
+            academicYear
         };
 
         const transaction = await TransactionModel.create(transactionData);
@@ -144,6 +145,9 @@ const addAmount = async (req, res) => {
 
         let { donorId, generalAmt, zakkathAmt } = req.body;
 
+        const academicYear = await currentAcademicYear()
+
+
         if (!donorId) {
             return sendError(res, 400, 'Donor ID is required to add amount.');
         }
@@ -157,7 +161,7 @@ const addAmount = async (req, res) => {
         const zakkathAmount = Number(zakkathAmt ?? 0);
 
         const transaction = await TransactionModel.create({
-            ...req.body,
+            ...req.body, academicYear,
             generalAmt: generalAmount,
             zakkathAmt: zakkathAmount
         });

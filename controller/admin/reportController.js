@@ -72,4 +72,23 @@ const fetchCardsData = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { fetchDonors, fetchCardsData };
+// Fetch Data for Status Card
+
+const fetchDonorTransactions = async (req, res) => {
+
+    try {
+
+        const academicYear = await currentAcademicYear();
+        const transactions = await TransactionModel.find({ academicYear }).sort({ createdAt: -1 });
+        console.log(transactions)
+        res.status(200).json({ transactions });
+
+    } catch (error) {
+        console.error("Error fetching benefitted students:", error);
+        res.status(500).json({ message: "Error fetching benefitted students", error: error.message });
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------
+
+module.exports = { fetchDonors, fetchCardsData, fetchDonorTransactions };
