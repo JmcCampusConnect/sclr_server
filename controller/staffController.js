@@ -411,8 +411,10 @@ const submitAppliedScholarship = async (req, res) => {
 const tutorStudents = async (req, res) => {
 
     try {
+
         const { userId } = req.query;
 
+        const academicYear = await currentAcademicYear();
         const staff = await StaffModel.findOne({ staffId: userId });
 
         if (!staff) {
@@ -422,11 +424,11 @@ const tutorStudents = async (req, res) => {
         const students = await StudentModel.find({
             department: staff.department,
             section: staff.section,
+            category: staff.category,
+            yearOfAdmission: staff.batch
         });
 
-        const academicYear = await currentAcademicYear();
-
-        const studentRegNos = students.map(s => s.registerNumber);
+        const studentRegNos = students.map(s => s.registerNo);
 
         const applications = await ApplicationModel.find({
             yearOfAdmission: staff.batch,
@@ -434,7 +436,7 @@ const tutorStudents = async (req, res) => {
             department: staff.department,
             category: staff.category,
             academicYear: academicYear,
-            registerNumber: { $in: studentRegNos },
+            registerNo: { $in: studentRegNos },
             applicationStatus: 0
         });
 
