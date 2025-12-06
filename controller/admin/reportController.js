@@ -55,12 +55,18 @@ const fetchCardsData = async (req, res) => {
             { $count: "uniqueStudents" },
         ])
 
+        const distributed = await DistributionModel.aggregate([
+            { $match: { academicYear } },
+            { $group: { _id: null, totalGiven: { $sum: "$givenAmt" } } },
+        ])
+        const totalDistributed = distributed.length > 0 ? distributed[0].totalGiven : 0;
+
         const studentsBenefitted = studentsBenefittedAgg[0]?.uniqueStudents || 0;
         const totalStudents = await ApplicationModel.countDocuments({ academicYear });
         const totalDepartments = await DepartmentModel.countDocuments();
 
         res.status(200).json({
-            totalStudents, generalAmt, zakkathAmt, openingBal,
+            totalStudents, generalAmt, zakkathAmt, openingBal, totalDistributed,
             generalBal, zakkathBal, studentsBenefitted, totalDepartments,
         });
 
