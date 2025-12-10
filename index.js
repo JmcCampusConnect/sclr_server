@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
-const jwt = require('jsonwebtoken');
 const cookieParser = require("cookie-parser");
 
 // -----------------------------------------------------------------------------------------------------------------
@@ -10,18 +9,6 @@ const cookieParser = require("cookie-parser");
 // Imported Functions
 
 const connectDB = require('./config/db');
-
-// -----------------------------------------------------------------------------------------------------------------
-
-// Imported Model
-
-const AcademicModel = require('./models/Academic');
-const StudentModel = require('./models/Student');
-const StaffModel = require('./models/Staff');
-const DonarModel = require('./models/Donor');
-const DepartmentModel = require('./models/Department');
-const DistributionModel = require('./models//Distribution');
-const TransactionModel = require('./models/Transaction');
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -44,6 +31,7 @@ const changePasswordRoutes = require("./routes/admin/changePasswordRoutes");
 const studentManageRoutes = require("./routes/admin/studentManageRoutes");
 const progressReportRoutes = require("./routes/admin/progressReportRoutes");
 const applnManageRoutes = require("./routes/admin/applnManageRoutes");
+const fileUploadRoutes = require("./routes/admin/fileUploadRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -96,5 +84,6 @@ app.use('/api/password', changePasswordRoutes);
 app.use('/api/studentManage', studentManageRoutes);
 app.use('/api/progressReport', progressReportRoutes);
 app.use('/api/manage/appln', applnManageRoutes);
+app.use('/api/fileUpload', fileUploadRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------

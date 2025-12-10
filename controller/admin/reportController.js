@@ -21,7 +21,6 @@ const fetchDonors = async (req, res) => {
         return res.status(500).json({ message: 'Server error while fetching donors.' });
     }
 }
-
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
 // Fetch Data for Status Card
