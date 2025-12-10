@@ -4,6 +4,7 @@ const AcademicModel = require("../models/Academic");
 const ApplicationModel = require("../models/Application");
 const DepartmentModel = require("../models/Department");
 const DonorModel = require("../models/Donor");
+const StaffModel = require("../models/Staff");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -25,9 +26,10 @@ router.get("/fetchDropdownData", async (req, res) => {
         const departments = await DepartmentModel.find().select("department departmentName");
         const categories = await ApplicationModel.distinct("category");
         const donors = await DonorModel.find().select("donorId donorName");
-        res.json({ batches, departments, categories, donors });
+        const tutors = await StaffModel.find({ category: { $ne: null } }).select("staffId staffName");
+        res.json({ batches, departments, categories, donors, tutors });
     } catch (error) {
-        console.error("Dropdown Error:", error);
+        console.error("Error fetching dropdown values : ", error);
         return res.status(500).json({ message: "Server error while fetching dropdown data" });
     }
 });
