@@ -188,7 +188,7 @@ const rejectApplications = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-// Fetch Students for Quick Rejection
+// Fetch students for quick rejection
 
 const quickRejection = async (req, res) => {
 
@@ -201,8 +201,8 @@ const quickRejection = async (req, res) => {
             const a = appl.toObject();
             const student = await StudentModel.findOne({ registerNo: a.registerNo });
             const s = student ? student.toObject() : {};
-            const parentIncome = Number(s.parentAnnualIncome || 0);
-            const siblingsIncome = Number(s.siblingsIncome || 0);
+            const parentIncome = Number(s.parentAnnualIncome ?? 0);
+            const siblingsIncome = Number(s.siblingsIncome ?? 0);
             const combinedIncome = parentIncome + siblingsIncome;
 
             return {
@@ -223,7 +223,7 @@ const quickRejection = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-// Quick reject Applications 
+// Quick reject applications save
 
 const quickRejectApplications = async (req, res) => {
 
