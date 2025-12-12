@@ -104,6 +104,7 @@ const addAcademic = async (req, res) => {
     const { academicYear, startDate, endDate, isActive } = req.body;
 
     try {
+        
         const checkExist = await AcademicModel.find({ academicYear: academicYear });
 
         if (checkExist.length > 0) { return res.status(409).json({ message: "Academic Year Already Exits" }) }
