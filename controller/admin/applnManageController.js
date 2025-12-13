@@ -12,25 +12,24 @@ const fetchApplicationData = async (req, res) => {
 
         const academicYear = await currentAcademicYear();
         if (!academicYear) { return res.status(400).json({ message: "Academic year not found." }) }
-
-        const applications = await ApplicationModel.find(
-            { academicYear },
-        ).lean();
+        const applications = await ApplicationModel.find({ academicYear }).lean();
 
         for (const app of applications) {
 
-            const student = await StudentModel.findOne(
-                { registerNo: app.registerNo },
-            ).lean();
+            const student = await StudentModel.findOne({ registerNo: app.registerNo }).lean();
 
             app.applicationId = app._id;
 
             if (student) {
                 app.studentId = student._id;
-                app.student = student;
+                app.section = student.section ?? null;
+                app.mobileNo = student.mobileNo ?? null;
+                app.aadharNo = student.aadharNo ?? null;
             } else {
                 app.studentId = null;
-                app.student = null;
+                app.section = null;
+                app.mobileNo = null;
+                app.aadharNo = null;
             }
         }
 
