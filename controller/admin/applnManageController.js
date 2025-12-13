@@ -14,7 +14,7 @@ const fetchApplicationData = async (req, res) => {
         if (!academicYear) { return res.status(400).json({ message: "Academic year not found." }) }
 
         const applications = await ApplicationModel.find(
-            { academicYear, applicationStatus: 0 },
+            { academicYear },
         ).lean();
 
         for (const app of applications) {
@@ -27,8 +27,11 @@ const fetchApplicationData = async (req, res) => {
 
             if (student) {
                 app.studentId = student._id;
-                Object.assign(app, student);
-            } else { app.studentId = null }
+                app.student = student;
+            } else {
+                app.studentId = null;
+                app.student = null;
+            }
         }
 
         if (!applications.length) { return res.status(404).json({ message: "No pending applications found.", data: [] }) }
