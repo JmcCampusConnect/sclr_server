@@ -12,7 +12,9 @@ const { currentAcademicYear } = require('../../utils/commonFunctions');
 // Fetch counts to show 
 
 const fetchCounts = async (req, res) => {
+
     try {
+
         const academicYear = await currentAcademicYear();
 
         // Fetch all applications for the year
@@ -123,7 +125,6 @@ const fetchCounts = async (req, res) => {
         tutor.even.pending = tutor.even.total - tutor.even.finished;
 
         // ---- RETURN FINAL REPORT ---- //
-        console.log(attendance)
         return res.json({ coe, attendance, deeniyath, sclr, tutor });
 
     } catch (err) {
