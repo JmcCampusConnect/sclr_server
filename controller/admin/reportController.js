@@ -6,6 +6,7 @@ const DonorModel = require('../../models/Donor');
 const TransactionModel = require('../../models/Transaction');
 const DepartmentModel = require('../../models/Department');
 const { currentAcademicYear } = require('../../utils/commonFunctions');
+const mongoose = require("mongoose");
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -95,4 +96,79 @@ const fetchDonorTransactions = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { fetchDonors, fetchCardsData, fetchDonorTransactions };
+// Delete Transaction
+
+const deleteTransaction = async (req, res) => {
+
+    try {
+
+        const { id } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Transaction ID is required"
+            });
+        }
+
+        const transaction = await TransactionModel.findById(id);
+
+        if (!transaction) {
+            return res.status(404).json({
+                success: false,
+                message: "Transaction not found"
+            });
+        }
+
+        const { donorId, generalAmt = 0, zakkathAmt = 0 } = transaction;
+
+        const donor = await DonorModel.findOneAndUpdate(
+            { donorId: String(donorId) },
+            {
+                $inc: {
+                    generalAmt: -generalAmt,
+                    generalBal: -generalAmt,
+                    zakkathAmt: -zakkathAmt,
+                    zakkathBal: -zakkathAmt
+                }
+            },
+            { new: true }
+        );
+
+        if (!donor) {
+            return res.status(404).json({
+                success: false,
+                message: "Donor not found"
+            });
+        }
+
+        await TransactionModel.findByIdAndDelete(id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Transaction deleted successfully",
+            deletedTransaction: {
+                _id: id, donorId, generalAmt, zakkathAmt
+            },
+            updatedDonor: {
+                donorId: donor.donorId,
+                generalAmt: donor.generalAmt,
+                generalBal: donor.generalBal,
+                zakkathAmt: donor.zakkathAmt,
+                zakkathBal: donor.zakkathBal
+            }
+        });
+
+    } catch (error) {
+        console.error("Error deleting transaction:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------
+
+module.exports = { fetchDonors, fetchCardsData, fetchDonorTransactions, deleteTransaction };
