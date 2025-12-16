@@ -61,4 +61,83 @@ const fetchCardsData = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { fetchDistribution, fetchCardsData }
+// Distribution Statement Delete 
+
+const deleteStatement = async (req, res) => {
+
+    try {
+
+        const { _id } = req.params;
+
+        const dist = await DistributionModel.findById(_id);
+
+        if (!dist) {
+            return res.status(404).json({
+                success: false,
+                message: "Distribution record not found"
+            });
+        }
+
+        const { givenAmt, registerNo, amtType, donorId, academicYear } = dist;
+
+        // 2️⃣ Update donor balances
+        if (amtType === 'generalBal') {
+            await DonorModel.updateOne(
+                { donorId },
+                {
+                    $inc: {
+                        generalBal: givenAmt,
+                        generalAmt: givenAmt
+                    }
+                }
+            );
+        }
+
+        if (amtType === 'zakkathBal') {
+            await DonorModel.updateOne(
+                { donorId },
+                {
+                    $inc: {
+                        zakkathBal: givenAmt,
+                        zakkathAmt: givenAmt
+                    }
+                }
+            );
+        }
+
+        // 3️⃣ Update student total credited amount
+        await StudentModel.updateOne(
+            { registerNo },
+            {
+                $inc: { totalCreditedAmount: -givenAmt }
+            }
+        );
+
+        // 4️⃣ Update application current year credited amount
+        await ApplicationModel.updateMany(
+            { registerNo, academicYear },
+            {
+                $inc: { currentYearCreditedAmount: -givenAmt }
+            }
+        );
+
+        // 5️⃣ Delete distribution record
+        await DistributionModel.findByIdAndDelete(_id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Distribution statement deleted and balances reverted successfully"
+        });
+
+    } catch (error) {
+        console.error("Delete distribution error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error while deleting distribution"
+        });
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------
+
+module.exports = { fetchDistribution, fetchCardsData, deleteStatement }
