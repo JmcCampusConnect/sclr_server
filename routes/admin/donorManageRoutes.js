@@ -6,7 +6,7 @@ const { fetchDonors, addDonor, updateDonor, deleteDonor, addAmount } = require('
 
 router.get('/fetchDonors', fetchDonors);
 router.post('/addDonor', addDonor);
-router.post('/updateDonor', updateDonor);
+router.put('/updateDonor/:donorId', updateDonor);
 router.delete('/deleteDonor/:donorId', deleteDonor);
 router.post('/addAmount', addAmount);
 

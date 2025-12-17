@@ -112,7 +112,6 @@ const deleteTransaction = async (req, res) => {
         }
 
         const transaction = await TransactionModel.findById(id);
-        console.log(transaction)
 
         if (!transaction) {
             return res.status(404).json({

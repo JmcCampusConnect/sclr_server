@@ -1,5 +1,6 @@
 const DonorModel = require('../../models/Donor');
 const TransactionModel = require('../../models/Transaction');
+const DistributionModel = require('../../models/Distribution');
 const { currentAcademicYear } = require('../../utils/commonFunctions');
 
 // -----------------------------------------------------------------------------
@@ -91,23 +92,50 @@ const updateDonor = async (req, res) => {
 
     try {
 
-        const { donorId } = req.body;
+        const { donorId } = req.params;
 
-        if (!donorId) {
-            return sendError(res, 400, 'Donor ID is required to update donor.');
-        }
+        if (!donorId) { return sendError(res, 400, 'Donor ID is required') }
+
+        const academicYear = await currentAcademicYear();
+
+        const {
+            donorName, donorType, mobileNo, emailId,
+            panOrAadhaar, address, district, state, pinCode
+        } = req.body;
 
         const updatedDonor = await DonorModel.findOneAndUpdate(
-            { donorId }, { $set: { ...req.body } }, { new: true }
+            { donorId, academicYear },
+            {
+                $set: {
+                    donorName, donorType, mobileNo, emailId,
+                    panOrAadhaar, address, district, state, pinCode
+                }
+            },
+            { new: true }
         );
 
-        if (!updatedDonor) { return sendError(res, 404, 'Donor not found.') }
+        if (!updatedDonor) {
+            return sendError(res, 404, 'Donor not found');
+        }
 
-        return sendSuccess(res, 200, 'Donor updated successfully.', { donor: updatedDonor });
+        await DistributionModel.updateMany(
+            { donorId, academicYear },
+            { $set: { donorName, donorType } }
+        );
+
+        await TransactionModel.updateMany(
+            { donorId, academicYear },
+            { $set: { donorName, donorType } }
+        );
+
+        return sendSuccess(res, 200, 'Donor updated successfully and synced across records', { updatedDonor });
+
     } catch (error) {
-        return sendError(res, 500, 'Server error while updating donor.', error);
+        console.error(error);
+        return sendError(res, 500, 'Server error while updating donor', error);
     }
 };
+
 
 // -----------------------------------------------------------------------------
 // Delete Donor
