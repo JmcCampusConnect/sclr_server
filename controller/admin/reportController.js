@@ -120,10 +120,10 @@ const deleteTransaction = async (req, res) => {
             });
         }
 
-        const { donorId, generalAmt = 0, zakkathAmt = 0 } = transaction;
+        const { donorId, generalAmt = 0, zakkathAmt = 0, academicYear } = transaction;
 
         const donor = await DonorModel.findOneAndUpdate(
-            { donorId: String(donorId) },
+            { donorId: String(donorId), academicYear },
             {
                 $inc: {
                     generalAmt: -generalAmt,

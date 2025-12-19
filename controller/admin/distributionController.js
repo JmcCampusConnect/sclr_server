@@ -61,6 +61,128 @@ const fetchCardsData = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
+// Distribution Statement Update 
+
+const updateStatement = async (req, res) => {
+
+    try {
+
+        const { _id } = req.params;
+
+        /* 1️⃣ Fetch old distribution */
+        const oldDist = await DistributionModel.findById(_id);
+        if (!oldDist) {
+            return res.status(404).json({ message: "Distribution not found" });
+        }
+
+        /* 2️⃣ Destructure old values */
+        const { donorId: oldDonorId, amtType: oldAmtType, givenAmt: oldAmt, academicYear, registerNo } = oldDist;
+
+        /* 3️⃣ Destructure new values */
+        const {
+            donorId: newDonorId,
+            amtType: newAmtType,
+            givenAmt: newAmt
+        } = req.body;
+
+        const oldAmount = Number(oldAmt) || 0;
+        const newAmount = Number(newAmt) || 0;
+
+        /* ---------------- DONOR BALANCE LOGIC ---------------- */
+
+        // CASE 1️⃣ SAME DONOR
+        if (oldDonorId === newDonorId) {
+
+            // Same amount type ➜ apply difference
+            if (oldAmtType === newAmtType) {
+                const diff = newAmount - oldAmount;
+
+                await DonorModel.updateOne(
+                    { donorId: oldDonorId, academicYear },
+                    { $inc: { [oldAmtType]: -diff } }
+                );
+            }
+
+            // Amount type changed
+            else {
+                // Add back to old type
+                await DonorModel.updateOne(
+                    { donorId: oldDonorId, academicYear },
+                    { $inc: { [oldAmtType]: oldAmount } }
+                );
+
+                // Deduct from new type
+                await DonorModel.updateOne(
+                    { donorId: oldDonorId, academicYear },
+                    { $inc: { [newAmtType]: -newAmount } }
+                );
+            }
+        }
+
+        // CASE 2️⃣ DIFFERENT DONOR
+        else {
+            // Revert old donor
+            await DonorModel.updateOne(
+                { donorId: oldDonorId, academicYear },
+                { $inc: { [oldAmtType]: oldAmount } }
+            );
+
+            // Deduct from new donor
+            await DonorModel.updateOne(
+                { donorId: newDonorId, academicYear },
+                { $inc: { [newAmtType]: -newAmount } }
+            );
+        }
+
+        /* ---------------- DONOR DETAILS SYNC (FIX) ---------------- */
+
+        // Do not trust frontend for donor fields
+
+        delete req.body.donorName;
+        delete req.body.donorType;
+
+        // If donorId changed, fetch correct donor details
+
+        if (oldDonorId !== newDonorId) {
+            const donor = await DonorModel.findOne({
+                donorId: newDonorId,
+                academicYear
+            });
+            if (!donor) { return res.status(404).json({ message: "New donor not found" }) }
+            req.body.donorName = donor.donorName;
+            req.body.donorType = donor.donorType;
+        }
+
+        /* ---------------- UPDATE DISTRIBUTION ---------------- */
+        const updatedDistribution = await DistributionModel.findByIdAndUpdate(id, req.body, { new: true });
+
+        /* ---------------- STUDENT ---------------- */
+        const diffAmount = newAmount - oldAmount;
+        await StudentModel.updateOne({ registerNo }, { $inc: { totalCreditedAmount: diffAmount } });
+
+        /* ---------------- APPLICATION ---------------- */
+        await ApplicationModel.updateMany(
+            { registerNo, academicYear },
+            { $inc: { currentYearCreditedAmount: diffAmount } }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Distribution updated successfully",
+            updatedDistribution
+        });
+
+    } catch (error) {
+        console.error("Update distribution error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error while updating distribution"
+        });
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------
+
 // Distribution Statement Delete 
 
 const deleteStatement = async (req, res) => {
@@ -140,4 +262,4 @@ const deleteStatement = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { fetchDistribution, fetchCardsData, deleteStatement }
+module.exports = { fetchDistribution, fetchCardsData, deleteStatement, updateStatement }
