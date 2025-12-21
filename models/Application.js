@@ -31,9 +31,13 @@ const applicationSchema = new mongoose.Schema({
     deeniyathMoralRemark: { type: String, required: true, default: 'Good' },
 
     // 5. Academic Performance
-    semesterMarkPercentage: { type: Number, required: true, default: -1 },
+    semesterMarkPercentage: {
+        type: Number,
+        required: true,
+        default: -1,
+        set: v => (v === -1 || v == null ? v : Number(v.toFixed(2)))
+    },
     semesterArrear: { type: Number, required: true, default: 0 },
-    semesterGrade: { type: String, required: true, default: 'A' },
 
     // 6. Application Verification & Status
     tutorVerification: { type: Number, required: true, default: 0, enum: [0, 1] },
