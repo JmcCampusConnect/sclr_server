@@ -70,7 +70,7 @@ const sclrDistributions = async (req, res) => {
         const { scholarships } = req.body;
         const academicYear = await currentAcademicYear();
 
-        // console.log(scholarships)
+        console.log(scholarships)
 
         if (!scholarships || scholarships.length === 0) { return res.status(400).json({ message: "No scholarships provided." }) }
 
@@ -80,7 +80,7 @@ const sclrDistributions = async (req, res) => {
 
             const donor = await DonorModel.findOne({ donorId: s.donorId });
             if (!donor) {
-                console.warn(`Donor not found: ${s.donorId} (${s.donorName})`);
+                console.warn(`Donor not found : ${s.donorId} (${s.donorName})`);
                 continue;
             }
             const amt = parseFloat(s.amount) || 0;
@@ -140,7 +140,7 @@ const sclrDistributions = async (req, res) => {
         })
 
     } catch (error) {
-        console.error("Error saving scholarships ---- : ", error);
+        console.error("Error saving scholarships : ", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }

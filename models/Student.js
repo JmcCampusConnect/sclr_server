@@ -17,7 +17,7 @@ const studentSchema = new mongoose.Schema({
 
     // 3. Contact & Identity Details
     mobileNo: { type: String, required: true },
-    aadharNo: { type: String, required: true },
+    aadharNo: { type: String },
     address: { type: String },
     district: { type: String },
     state: { type: String },

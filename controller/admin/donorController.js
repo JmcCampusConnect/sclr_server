@@ -22,7 +22,8 @@ const sendSuccess = (res, status, message, data = {}) => {
 
 const fetchDonors = async (req, res) => {
     try {
-        const donors = await DonorModel.find().sort({ createdAt: -1 });
+        const academicYear = await currentAcademicYear();
+        const donors = await DonorModel.find({ academicYear }).sort({ createdAt: -1 });
         return sendSuccess(res, 200, 'Donors fetched successfully.', { donors });
     } catch (error) {
         return sendError(res, 500, 'Server error while fetching donors.', error);
