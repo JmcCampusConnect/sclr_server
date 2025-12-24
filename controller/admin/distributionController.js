@@ -262,4 +262,30 @@ const deleteStatement = async (req, res) => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { fetchDistribution, fetchCardsData, deleteStatement, updateStatement }
+// Fetch distribution students by semesters
+
+const getStudentsBySemesters = async (req, res) => {
+
+    try {
+
+        const { semesters } = req.body;
+
+        if (!Array.isArray(semesters)) {
+            return res.status(400).json({ message: "Invalid semesters" });
+        }
+
+        const students = await ApplicationModel.find({
+            semester: { $in: semesters }
+        }).select("registerNo name department category graduate semester sclrType");
+
+        res.json(students);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------
+
+module.exports = { fetchDistribution, fetchCardsData, deleteStatement, updateStatement, getStudentsBySemesters }

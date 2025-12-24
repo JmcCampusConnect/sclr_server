@@ -65,12 +65,12 @@ const fetchDonors = async (req, res) => {
 
 const sclrDistributions = async (req, res) => {
 
+
     try {
 
         const { scholarships } = req.body;
-        const academicYear = await currentAcademicYear();
-
         console.log(scholarships)
+        const academicYear = await currentAcademicYear();
 
         if (!scholarships || scholarships.length === 0) { return res.status(400).json({ message: "No scholarships provided." }) }
 
