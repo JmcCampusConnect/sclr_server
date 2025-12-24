@@ -5,7 +5,7 @@ const DistributionModel = require('../../models/Distribution');
 const DonorModel = require('../../models/Donor');
 const TransactionModel = require('../../models/Transaction');
 const DepartmentModel = require('../../models/Department');
-const { currentAcademicYear } = require('../../utils/commonFunctions');
+const {currentAcademicYear} = require('../../utils/commonFunctions');
 const mongoose = require("mongoose");
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -15,11 +15,11 @@ const mongoose = require("mongoose");
 const fetchDonors = async (req, res) => {
     try {
         const academicYear = await currentAcademicYear();
-        const donors = await DonorModel.find({ academicYear }).sort({ createdAt: -1 });
-        return res.json({ donors });
+        const donors = await DonorModel.find({academicYear}).sort({createdAt: -1});
+        return res.json({donors});
     } catch (error) {
         console.error('Error fetching donors : ', error);
-        return res.status(500).json({ message: 'Server error while fetching donors.' });
+        return res.status(500).json({message: 'Server error while fetching donors.'});
     }
 }
 // ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -34,8 +34,8 @@ const fetchCardsData = async (req, res) => {
 
         const sumField = async (field) => {
             const result = await DonorModel.aggregate([
-                { $match: { academicYear } },
-                { $group: { _id: null, total: { $sum: `$${field}` } } },
+                {$match: {academicYear}},
+                {$group: {_id: null, total: {$sum: `$${field}`}}},
             ]);
             return result[0]?.total || 0;
         };
@@ -50,19 +50,19 @@ const fetchCardsData = async (req, res) => {
         const openingBal = generalAmt + zakkathAmt;
 
         const studentsBenefittedAgg = await DistributionModel.aggregate([
-            { $match: { academicYear } },
-            { $group: { _id: "$registerNo" } },
-            { $count: "uniqueStudents" },
+            {$match: {academicYear}},
+            {$group: {_id: "$registerNo"}},
+            {$count: "uniqueStudents"},
         ])
 
         const distributed = await DistributionModel.aggregate([
-            { $match: { academicYear } },
-            { $group: { _id: null, totalGiven: { $sum: "$givenAmt" } } },
+            {$match: {academicYear}},
+            {$group: {_id: null, totalGiven: {$sum: "$givenAmt"}}},
         ])
         const totalDistributed = distributed.length > 0 ? distributed[0].totalGiven : 0;
 
         const studentsBenefitted = studentsBenefittedAgg[0]?.uniqueStudents || 0;
-        const totalStudents = await ApplicationModel.countDocuments({ academicYear });
+        const totalStudents = await ApplicationModel.countDocuments({academicYear});
         const totalDepartments = await DepartmentModel.countDocuments();
 
         res.status(200).json({
@@ -72,7 +72,7 @@ const fetchCardsData = async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching benefitted students:", error);
-        res.status(500).json({ message: "Error fetching benefitted students", error: error.message });
+        res.status(500).json({message: "Error fetching benefitted students", error: error.message});
     }
 }
 
@@ -85,12 +85,12 @@ const fetchDonorTransactions = async (req, res) => {
     try {
 
         const academicYear = await currentAcademicYear();
-        const transactions = await TransactionModel.find({ academicYear }).sort({ createdAt: -1 });
-        res.status(200).json({ transactions });
+        const transactions = await TransactionModel.find({academicYear}).sort({createdAt: -1});
+        res.status(200).json({transactions});
 
     } catch (error) {
         console.error("Error fetching benefitted students:", error);
-        res.status(500).json({ message: "Error fetching benefitted students", error: error.message });
+        res.status(500).json({message: "Error fetching benefitted students", error: error.message});
     }
 }
 
@@ -102,7 +102,7 @@ const deleteTransaction = async (req, res) => {
 
     try {
 
-        const { id } = req.body;
+        const {id} = req.body;
 
         if (!id) {
             return res.status(400).json({
@@ -120,10 +120,10 @@ const deleteTransaction = async (req, res) => {
             });
         }
 
-        const { donorId, generalAmt = 0, zakkathAmt = 0, academicYear } = transaction;
+        const {donorId, generalAmt = 0, zakkathAmt = 0, academicYear} = transaction;
 
         const donor = await DonorModel.findOneAndUpdate(
-            { donorId: String(donorId), academicYear },
+            {donorId: String(donorId), academicYear},
             {
                 $inc: {
                     generalAmt: -generalAmt,
@@ -132,7 +132,7 @@ const deleteTransaction = async (req, res) => {
                     zakkathBal: -zakkathAmt
                 }
             },
-            { new: true }
+            {new: true}
         );
 
         if (!donor) {
@@ -168,7 +168,74 @@ const deleteTransaction = async (req, res) => {
         });
     }
 }
+//-----------------------------------------------------------------------------
+// Edit Transaction 
+
+
+const editTransaction = async (req, res) => {
+    const {_id, generalAmt, zakkathAmt} = req.body;
+
+    try {
+        // 1️⃣ Get existing transaction
+        const existingTransaction = await TransactionModel
+            .findById(_id)
+            .select("generalAmt zakkathAmt donorId")
+            .lean();
+
+        if (!existingTransaction) {
+            return res.status(404).json({message: "Transaction not found"});
+        }
+
+        // 2️⃣ Get donor details
+        const donor = await DonorModel
+            .findOne({donorId: existingTransaction.donorId})
+            .select("generalAmt zakkathAmt generalBal zakkathBal")
+            .lean();
+
+        if (!donor) {
+            return res.status(404).json({message: "Donor not found"});
+        }
+
+        // 3️⃣ Calculate differences (NEW - OLD)
+        const generalDiff = generalAmt - existingTransaction.generalAmt;
+        const zakkathDiff = zakkathAmt - existingTransaction.zakkathAmt;
+
+        // 4️⃣ Update transaction (direct set)
+        await TransactionModel.updateOne(
+            {_id},
+            {
+                $set: {
+                    generalAmt,
+                    zakkathAmt
+                }
+            }
+        );
+
+        // 5️⃣ Update donor balances
+        await DonorModel.updateOne(
+            {donorId: existingTransaction.donorId},
+            {
+                $inc: {
+                    generalAmt: generalDiff,
+                    zakkathAmt: zakkathDiff,
+                    generalBal: generalDiff,
+                    zakkathBal: zakkathDiff
+                }
+            }
+        );
+
+        // 6️⃣ Send response
+        return res.status(200).json({
+            message: "Transaction updated successfully"
+        });
+
+    } catch (error) {
+        console.error("Edit Transaction Error:", error);
+        return res.status(500).json({message: "Internal Server Error"});
+    }
+};
+
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-module.exports = { fetchDonors, fetchCardsData, fetchDonorTransactions, deleteTransaction };
+module.exports = {fetchDonors, fetchCardsData, fetchDonorTransactions, deleteTransaction, editTransaction};

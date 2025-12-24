@@ -1,7 +1,7 @@
 const DonorModel = require('../../models/Donor');
 const TransactionModel = require('../../models/Transaction');
 const DistributionModel = require('../../models/Distribution');
-const { currentAcademicYear } = require('../../utils/commonFunctions');
+const {currentAcademicYear} = require('../../utils/commonFunctions');
 
 // -----------------------------------------------------------------------------
 // Utility response helpers
@@ -9,11 +9,11 @@ const { currentAcademicYear } = require('../../utils/commonFunctions');
 
 const sendError = (res, status, message, error = null) => {
     if (error) console.error(message, error);
-    return res.status(status).json({ success: false, message });
+    return res.status(status).json({success: false, message});
 };
 
 const sendSuccess = (res, status, message, data = {}) => {
-    return res.status(status).json({ success: true, message, ...data });
+    return res.status(status).json({success: true, message, ...data});
 };
 
 // -----------------------------------------------------------------------------
@@ -23,8 +23,8 @@ const sendSuccess = (res, status, message, data = {}) => {
 const fetchDonors = async (req, res) => {
     try {
         const academicYear = await currentAcademicYear();
-        const donors = await DonorModel.find({ academicYear }).sort({ createdAt: -1 });
-        return sendSuccess(res, 200, 'Donors fetched successfully.', { donors });
+        const donors = await DonorModel.find({academicYear}).sort({createdAt: -1});
+        return sendSuccess(res, 200, 'Donors fetched successfully.', {donors});
     } catch (error) {
         return sendError(res, 500, 'Server error while fetching donors.', error);
     }
@@ -49,8 +49,8 @@ const addDonor = async (req, res) => {
 
         const lastDonor = await DonorModel
             .findOne()
-            .sort({ donorId: -1 })
-            .collation({ locale: 'en_US', numericOrdering: true })
+            .sort({donorId: -1})
+            .collation({locale: 'en_US', numericOrdering: true})
             .select('donorId');
 
         const newDonorId = lastDonor ? (parseInt(lastDonor.donorId, 10) + 1).toString() : '1';
@@ -93,9 +93,9 @@ const updateDonor = async (req, res) => {
 
     try {
 
-        const { donorId } = req.params;
+        const {donorId} = req.params;
 
-        if (!donorId) { return sendError(res, 400, 'Donor ID is required') }
+        if (!donorId) {return sendError(res, 400, 'Donor ID is required')}
 
         const academicYear = await currentAcademicYear();
 
@@ -105,14 +105,14 @@ const updateDonor = async (req, res) => {
         } = req.body;
 
         const updatedDonor = await DonorModel.findOneAndUpdate(
-            { donorId, academicYear },
+            {donorId, academicYear},
             {
                 $set: {
                     donorName, donorType, mobileNo, emailId,
                     panOrAadhaar, address, district, state, pinCode
                 }
             },
-            { new: true }
+            {new: true}
         );
 
         if (!updatedDonor) {
@@ -120,16 +120,16 @@ const updateDonor = async (req, res) => {
         }
 
         await DistributionModel.updateMany(
-            { donorId, academicYear },
-            { $set: { donorName, donorType } }
+            {donorId, academicYear},
+            {$set: {donorName, donorType}}
         );
 
         await TransactionModel.updateMany(
-            { donorId, academicYear },
-            { $set: { donorName, donorType } }
+            {donorId, academicYear},
+            {$set: {donorName, donorType}}
         );
 
-        return sendSuccess(res, 200, 'Donor updated successfully and synced across records', { updatedDonor });
+        return sendSuccess(res, 200, 'Donor updated successfully and synced across records', {updatedDonor});
 
     } catch (error) {
         console.error(error);
@@ -146,13 +146,13 @@ const deleteDonor = async (req, res) => {
 
     try {
 
-        const { donorId } = req.params;
+        const {donorId} = req.params;
 
         if (!donorId) {
             return sendError(res, 400, 'Donor ID is required to delete donor.');
         }
 
-        const deleted = await DonorModel.findOneAndDelete({ donorId });
+        const deleted = await DonorModel.findOneAndDelete({donorId});
 
         if (!deleted) {
             return sendError(res, 404, 'Donor not found.');
@@ -172,7 +172,7 @@ const addAmount = async (req, res) => {
 
     try {
 
-        let { donorId, generalAmt, zakkathAmt } = req.body;
+        let {donorId, generalAmt, zakkathAmt} = req.body;
 
         const academicYear = await currentAcademicYear()
 
@@ -181,7 +181,7 @@ const addAmount = async (req, res) => {
             return sendError(res, 400, 'Donor ID is required to add amount.');
         }
 
-        const donor = await DonorModel.findOne({ donorId });
+        const donor = await DonorModel.findOne({donorId});
         if (!donor) {
             return sendError(res, 404, 'Donor not found.');
         }
@@ -201,7 +201,7 @@ const addAmount = async (req, res) => {
         const updatedZakkathBal = (donor.zakkathBal || 0) + zakkathAmount;
 
         await DonorModel.updateOne(
-            { donorId },
+            {donorId},
             {
                 $set: {
                     generalAmt: updatedGeneralAmt,
@@ -212,12 +212,34 @@ const addAmount = async (req, res) => {
             }
         );
 
-        return sendSuccess(res, 200, 'Transaction recorded and donor balance updated.', { transaction });
+        return sendSuccess(res, 200, 'Transaction recorded and donor balance updated.', {transaction});
 
     } catch (error) {
         return sendError(res, 500, 'Error while saving transaction.', error);
     }
 }
+
+//-----------------------------------------------------------------------------
+// Get Transactions for Doror Amount Popup
+const getTransaction = async (req, res) => {
+    const {donorId} = req.params;
+    // console.log(donorId);
+    const academicYear = await currentAcademicYear()
+    if (!donorId) {
+        return sendError(res, 400, 'Donor ID is required to delete donor.');
+    }
+
+    try {
+        const transaction = await TransactionModel.find({donorId, academicYear})
+        return sendSuccess(res, 200, 'Transaction Data is Here.', {transaction});
+
+    } catch (e) {
+        return sendError(res, 500, 'Error while saving transaction.', error);
+    }
+
+}
+
+
 
 // -----------------------------------------------------------------------------
 // Exports
@@ -228,5 +250,6 @@ module.exports = {
     addDonor,
     updateDonor,
     deleteDonor,
-    addAmount
+    addAmount,
+    getTransaction
 };
