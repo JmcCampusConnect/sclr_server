@@ -56,7 +56,7 @@ const fetchCardsData = async (req, res) => {
         const distributed = await DistributionModel.aggregate([
             { $match: { academicYear } },
             { $group: { _id: null, totalGiven: { $sum: "$givenAmt" } } },
-        ])
+        ]) 
         const totalDistributed = distributed.length > 0 ? distributed[0].totalGiven : 0;
 
         const studentsBenefitted = studentsBenefittedAgg[0]?.uniqueStudents || 0;
