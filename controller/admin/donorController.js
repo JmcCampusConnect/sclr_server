@@ -76,7 +76,8 @@ const addDonor = async (req, res) => {
 
         const transaction = await TransactionModel.create(transactionData);
 
-        return sendSuccess(res, 201, 'Donor and initial transaction created successfully.', {
+        return sendSuccess(
+            res, 201, 'Donor and initial transaction created successfully.', {
             donor: newDonor, transaction
         });
 
@@ -137,7 +138,6 @@ const updateDonor = async (req, res) => {
     }
 };
 
-
 // -----------------------------------------------------------------------------
 // Delete Donor
 // -----------------------------------------------------------------------------
@@ -176,12 +176,11 @@ const addAmount = async (req, res) => {
 
         const academicYear = await currentAcademicYear()
 
-
         if (!donorId) {
             return sendError(res, 400, 'Donor ID is required to add amount.');
         }
 
-        const donor = await DonorModel.findOne({ donorId });
+        const donor = await DonorModel.findOne({ donorId, academicYear });
         if (!donor) {
             return sendError(res, 404, 'Donor not found.');
         }
@@ -201,7 +200,7 @@ const addAmount = async (req, res) => {
         const updatedZakkathBal = (donor.zakkathBal || 0) + zakkathAmount;
 
         await DonorModel.updateOne(
-            { donorId },
+            { donorId, academicYear },
             {
                 $set: {
                     generalAmt: updatedGeneralAmt,

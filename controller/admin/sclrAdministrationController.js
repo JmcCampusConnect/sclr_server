@@ -65,7 +65,6 @@ const fetchDonors = async (req, res) => {
 
 const sclrDistributions = async (req, res) => {
 
-
     try {
 
         const { scholarships } = req.body;
@@ -85,7 +84,6 @@ const sclrDistributions = async (req, res) => {
             const amt = parseFloat(s.amount) || 0;
             if (s.amtType === "generalBal") { donor.generalBal = (donor.generalBal || 0) - amt }
             else if (s.amtType === "zakkathBal") { donor.zakkathBal = (donor.zakkathBal || 0) - amt }
-
             await donor.save();
 
             const app = await ApplicationModel.findOne({ _id: s.applicationId });
