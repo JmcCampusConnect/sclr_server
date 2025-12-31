@@ -98,15 +98,13 @@ const updateDonor = async (req, res) => {
 
         if (!donorId) { return sendError(res, 400, 'Donor ID is required') }
 
-        const academicYear = await currentAcademicYear();
-
         const {
             donorName, donorType, mobileNo, emailId,
             panOrAadhaar, address, district, state, pinCode
         } = req.body;
 
-        const updatedDonor = await DonorModel.findOneAndUpdate(
-            { donorId, academicYear },
+        const updatedDonor = await DonorModel.updateMany(
+            { donorId },
             {
                 $set: {
                     donorName, donorType, mobileNo, emailId,
@@ -121,12 +119,12 @@ const updateDonor = async (req, res) => {
         }
 
         await DistributionModel.updateMany(
-            { donorId, academicYear },
+            { donorId },
             { $set: { donorName, donorType } }
         );
 
         await TransactionModel.updateMany(
-            { donorId, academicYear },
+            { donorId },
             { $set: { donorName, donorType } }
         );
 
@@ -145,19 +143,11 @@ const updateDonor = async (req, res) => {
 const deleteDonor = async (req, res) => {
 
     try {
-
         const { donorId } = req.params;
-
-        if (!donorId) {
-            return sendError(res, 400, 'Donor ID is required to delete donor.');
-        }
-
-        const deleted = await DonorModel.findOneAndDelete({ donorId });
-
-        if (!deleted) {
-            return sendError(res, 404, 'Donor not found.');
-        }
-
+        const academicYear = await currentAcademicYear();
+        if (!donorId) { return sendError(res, 400, 'Donor ID is required to delete donor.')}
+        const deleted = await DonorModel.findOneAndDelete({ donorId, academicYear });
+        if (!deleted) { return sendError(res, 404, 'Donor not found.') }
         return sendSuccess(res, 200, 'Donor deleted successfully.');
     } catch (error) {
         return sendError(res, 500, 'Server error while deleting donor.', error);
@@ -324,6 +314,8 @@ const editTransaction = async (req, res) => {
 
     try {
 
+        const academicYear = await currentAcademicYear();
+
         // 1️⃣ Get existing transaction
         const existingTransaction = await TransactionModel
             .findById(_id)
@@ -336,7 +328,7 @@ const editTransaction = async (req, res) => {
 
         // 2️⃣ Get donor details
         const donor = await DonorModel
-            .findOne({ donorId: existingTransaction.donorId })
+            .findOne({ donorId: existingTransaction.donorId, academicYear })
             .select("generalAmt zakkathAmt generalBal zakkathBal")
             .lean();
 
@@ -361,7 +353,7 @@ const editTransaction = async (req, res) => {
 
         // 5️⃣ Update donor balances
         await DonorModel.updateOne(
-            { donorId: existingTransaction.donorId },
+            { donorId: existingTransaction.donorId, academicYear },
             {
                 $inc: {
                     generalAmt: generalDiff,

@@ -103,7 +103,7 @@ const addAcademic = async (req, res) => {
     const { academicYear, startDate, endDate, isActive } = req.body;
 
     try {
-        
+
         const checkExist = await AcademicModel.find({ academicYear: academicYear });
 
         if (checkExist.length > 0) { return res.status(409).json({ message: "Academic Year Already Exits" }) }
@@ -136,6 +136,16 @@ const updateAcademicYear = async (req, res) => {
     try {
 
         const { academicId, academicYear, applnStartDate, applnEndDate, active } = formData;
+
+        const checkExist = await AcademicModel.findOne({
+            academicYear,
+            academicId: { $ne: academicId }
+        });
+
+        if (checkExist) {
+            return res.status(409).json({ message: "Academic Year already exists" });
+        }
+
         if (active) { await AcademicModel.updateOne({ active: 1 }, { $set: { active: 0 } }) }
 
         const update = await AcademicModel.updateOne(
