@@ -1,4 +1,4 @@
-const DepartmentModel = require('../../models/Department');
+const DepartmentModel = require('../../../models/Department');
 
 // -----------------------------------------------------------------------------
 // Utility Response Helpers

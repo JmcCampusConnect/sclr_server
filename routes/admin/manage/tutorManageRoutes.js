@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { fetchTutors, fetchDepartments, addTutor, updateTutor, deleteTutor } = require('../../controller/admin/tutorController');
+const { fetchTutors, fetchDepartments, addTutor, updateTutor, deleteTutor } = require('../../../controller/admin/manage/tutorController');
 
 // -----------------------------------------------------------------------------------------------------------------
 

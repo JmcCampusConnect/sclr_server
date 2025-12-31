@@ -20,17 +20,17 @@ const staffRoutes = require('./routes/staffRoutes');
 const authRoutes = require("./routes/authRoutes");
 const aplnSettingsRoutes = require("./routes/admin/aplnSettingsRoutes");
 const sclrAdministrationRoutes = require("./routes/admin/sclrAdministrationRoutes");
-const donorManageRoutes = require("./routes/admin/donorManageRoutes");
-const tutorManageRoutes = require("./routes/admin/tutorManageRoutes");
+const donorManageRoutes = require("./routes/admin/manage/donorManageRoutes");
+const tutorManageRoutes = require("./routes/admin/manage/tutorManageRoutes");
 const staffManageRoutes = require("./routes/admin/staffManageRoutes");
 const distributionRoutes = require("./routes/admin/distributionRoutes");
 const dashboardRoutes = require("./routes/admin/dashboardRoutes");
-const deptManageRoutes = require("./routes/admin/deptManageRoutes");
+const deptManageRoutes = require("./routes/admin/manage/deptManageRoutes");
 const reportRoutes = require("./routes/admin/reportRoutes");
 const changePasswordRoutes = require("./routes/admin/changePasswordRoutes");
-const studentManageRoutes = require("./routes/admin/studentManageRoutes");
+const studentManageRoutes = require("./routes/admin/manage/studentManageRoutes");
 const progressReportRoutes = require("./routes/admin/progressReportRoutes");
-const applnManageRoutes = require("./routes/admin/applnManageRoutes");
+const applnManageRoutes = require("./routes/admin/manage/applnManageRoutes");
 const fileUploadRoutes = require("./routes/admin/fileUploadRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ app.use(cookieParser());
 app.use(cors({
     origin: process.env.FRONTEND_URL,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true 
+    credentials: true
 }))
 
 connectDB();

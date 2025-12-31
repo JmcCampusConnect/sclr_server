@@ -1,9 +1,9 @@
-const StudentModel = require('../../models/Student');
-const ApplicationModel = require('../../models/Application');
-const AcademicModel = require('../../models/Academic');
-const StaffModel = require('../../models/Staff');
-const DonorModel = require('../../models/Donor');
-const { currentAcademicYear } = require('../../utils/commonFunctions');
+const StudentModel = require('../../../models/Student');
+const ApplicationModel = require('../../../models/Application');
+const AcademicModel = require('../../../models/Academic');
+const StaffModel = require('../../../models/Staff');
+const DonorModel = require('../../../models/Donor');
+const { currentAcademicYear } = require('../../../utils/commonFunctions');
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 

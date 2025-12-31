@@ -1,7 +1,7 @@
-const StudentModel = require('../../models/Student');
-const ApplicationModel = require('../../models/Application');
-const DistributionModel = require('../../models/Distribution');
-const { currentAcademicYear } = require('../../utils/commonFunctions');
+const StudentModel = require('../../../models/Student');
+const ApplicationModel = require('../../../models/Application');
+const DistributionModel = require('../../../models/Distribution');
+const { currentAcademicYear } = require('../../../utils/commonFunctions');
 
 // ----------------------------------------------------------------------------------------------------------------
 

@@ -1,5 +1,5 @@
-const StaffModel = require('../../models/Staff');
-const DepartmentModel = require('../../models/Department');
+const StaffModel = require('../../../models/Staff');
+const DepartmentModel = require('../../../models/Department');
 
 // -----------------------------------------------------------------------------
 // Utility functions

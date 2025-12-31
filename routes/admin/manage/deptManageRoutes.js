@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { fetchDepts, addDepartment, updateDepartment, deleteDepartment } = require('../../controller/admin/deptController');
+const { fetchDepts, addDepartment, updateDepartment, deleteDepartment } = require('../../../controller/admin/manage/deptController');
 
 // -----------------------------------------------------------------------------------------------------------------
 

@@ -1,7 +1,7 @@
-const DonorModel = require('../../models/Donor');
-const TransactionModel = require('../../models/Transaction');
-const DistributionModel = require('../../models/Distribution');
-const { currentAcademicYear } = require('../../utils/commonFunctions');
+const DonorModel = require('../../../models/Donor');
+const TransactionModel = require('../../../models/Transaction');
+const DistributionModel = require('../../../models/Distribution');
+const { currentAcademicYear } = require('../../../utils/commonFunctions');
 
 // -----------------------------------------------------------------------------
 // Utility response helpers
@@ -145,7 +145,7 @@ const deleteDonor = async (req, res) => {
     try {
         const { donorId } = req.params;
         const academicYear = await currentAcademicYear();
-        if (!donorId) { return sendError(res, 400, 'Donor ID is required to delete donor.')}
+        if (!donorId) { return sendError(res, 400, 'Donor ID is required to delete donor.') }
         const deleted = await DonorModel.findOneAndDelete({ donorId, academicYear });
         if (!deleted) { return sendError(res, 404, 'Donor not found.') }
         return sendSuccess(res, 200, 'Donor deleted successfully.');

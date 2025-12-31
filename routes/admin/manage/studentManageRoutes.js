@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { fetchStudentData, passwordSemBasedChange } = require('../../controller/admin/studentManageController');
+const { fetchStudentData, passwordSemBasedChange } = require('../../../controller/admin/manage/studentManageController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
