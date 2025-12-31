@@ -83,7 +83,6 @@ const updateDates = async (req, res) => {
 
 };
 
-
 // ----------------------------------------------------------------------------------------------------------------
 
 // To fetch and display dates for application date settings
