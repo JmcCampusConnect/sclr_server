@@ -96,7 +96,6 @@ const updateStatement = async (req, res) => {
             // Same amount type ➜ apply difference
             if (oldAmtType === newAmtType) {
                 const diff = newAmount - oldAmount;
-
                 await DonorModel.updateOne(
                     { donorId: oldDonorId, academicYear },
                     { $inc: { [oldAmtType]: -diff } }
@@ -145,8 +144,7 @@ const updateStatement = async (req, res) => {
 
         if (oldDonorId !== newDonorId) {
             const donor = await DonorModel.findOne({
-                donorId: newDonorId,
-                academicYear
+                donorId: newDonorId, academicYear
             });
             if (!donor) { return res.status(404).json({ message: "New donor not found" }) }
             req.body.donorName = donor.donorName;
@@ -154,7 +152,7 @@ const updateStatement = async (req, res) => {
         }
 
         /* ---------------- UPDATE DISTRIBUTION ---------------- */
-        const updatedDistribution = await DistributionModel.findByIdAndUpdate(id, req.body, { new: true });
+        const updatedDistribution = await DistributionModel.findByIdAndUpdate(_id, req.body, { new: true });
 
         /* ---------------- STUDENT ---------------- */
         const diffAmount = newAmount - oldAmount;
@@ -173,7 +171,7 @@ const updateStatement = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Update distribution error:", error);
+        console.error("Error in updating distribution : ", error);
         return res.status(500).json({
             success: false,
             message: "Server error while updating distribution"
@@ -205,7 +203,7 @@ const deleteStatement = async (req, res) => {
         // 2️⃣ Update donor balances
         if (amtType === 'generalBal') {
             await DonorModel.updateOne(
-                { donorId },
+                { donorId, academicYear },
                 {
                     $inc: {
                         generalBal: givenAmt,
@@ -217,7 +215,7 @@ const deleteStatement = async (req, res) => {
 
         if (amtType === 'zakkathBal') {
             await DonorModel.updateOne(
-                { donorId },
+                { donorId, academicYear },
                 {
                     $inc: {
                         zakkathBal: givenAmt,

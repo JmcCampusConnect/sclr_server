@@ -1,10 +1,8 @@
 const StudentModel = require('../../models/Student');
 const ApplicationModel = require('../../models/Application');
-const AcademicModel = require('../../models/Academic');
 const DonorModel = require('../../models/Donor');
 const DistributionModel = require('../../models/Distribution');
 const { currentAcademicYear } = require('../../utils/commonFunctions');
-const { mongoose } = require('mongoose');
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -76,7 +74,7 @@ const sclrDistributions = async (req, res) => {
 
         for (const s of scholarships) {
 
-            const donor = await DonorModel.findOne({ donorId: s.donorId });
+            const donor = await DonorModel.findOne({ donorId: s.donorId, academicYear });
             if (!donor) {
                 console.warn(`Donor not found : ${s.donorId} (${s.donorName})`);
                 continue;
