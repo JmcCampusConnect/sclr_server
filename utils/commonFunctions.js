@@ -22,10 +22,11 @@ const currentAcademicYear = async () => {
 router.get("/fetchDropdownData", async (req, res) => {
 
     try {
+        const academicYear = await currentAcademicYear();
         const batches = await ApplicationModel.distinct("yearOfAdmission");
         const departments = await DepartmentModel.find().select("department departmentName");
         const categories = await ApplicationModel.distinct("category");
-        const donors = await DonorModel.find().select("donorId donorName");
+        const donors = await DonorModel.find({ academicYear }).select("donorId donorName donorType");
         const tutors = await StaffModel.find({ category: { $ne: null } }).select("staffId staffName");
         res.json({ batches, departments, categories, donors, tutors });
     } catch (error) {
