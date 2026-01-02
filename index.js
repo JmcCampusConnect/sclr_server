@@ -32,6 +32,7 @@ const studentManageRoutes = require("./routes/admin/manage/studentManageRoutes")
 const progressReportRoutes = require("./routes/admin/progressReportRoutes");
 const applnManageRoutes = require("./routes/admin/manage/applnManageRoutes");
 const fileUploadRoutes = require("./routes/admin/fileUploadRoutes");
+const dataDeletionRoutes = require("./routes/admin/dataDeletionRoutes");
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -85,5 +86,6 @@ app.use('/api/studentManage', studentManageRoutes);
 app.use('/api/progressReport', progressReportRoutes);
 app.use('/api/manage/appln', applnManageRoutes);
 app.use('/api/fileUpload', fileUploadRoutes);
+app.use('/api/dataDeletion', dataDeletionRoutes);
 
 // -----------------------------------------------------------------------------------------------------------------
