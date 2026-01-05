@@ -320,11 +320,20 @@ const sclrStudents = async (req, res) => {
             });
         }
 
-        let categories = [];
-        if (staffId === "JMCTPS") categories = ["SFM", "Aided"];
-        if (staffId === "JMCPPS") categories = ["SFW"];
+        const categoryMap = {
+            JMCGSA: "Aided",
+            JMCGSM: "SFM",
+            JMCGSW: "SFW",
+        };
 
-        const categoryFilter = categories.length === 1 ? categories[0] : { $in: categories };
+        const categoryFilter = categoryMap[staffId];
+
+        if (!categoryFilter) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid staffId"
+            });
+        }
 
         const pendingFilter = {
             registerNo: { $in: registerNos },
@@ -361,7 +370,6 @@ const sclrStudents = async (req, res) => {
         });
     }
 };
-
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -25,6 +25,7 @@ const fetchCounts = async (req, res) => {
         const isOddSemester = (semester) => ["I", "III", "V"].includes(semester);
 
         // ---- COE REPORT ---- //
+
         const coe = { odd: { finished: 0, total: 0, pending: 0 }, even: { finished: 0, total: 0, pending: 0 } };
         allApplications.forEach(app => {
             if (app.semester !== "I") {
@@ -41,6 +42,7 @@ const fetchCounts = async (req, res) => {
         coe.odd.pending = coe.odd.total - coe.odd.finished;
 
         // ---- CLASS ATTENDANCE REPORT ---- //
+
         const categories = ["Aided", "SFM", "SFW"];
         const attendance = { odd: {}, even: {} };
         for (const cat of categories) {
@@ -60,6 +62,7 @@ const fetchCounts = async (req, res) => {
         });
 
         // ---- DEENIYATH MORAL ATTENDANCE REPORT ---- //
+
         const deeniyathSections = ["aidedSfmMuslim", "sfwMuslim", "aidedSfmNonMuslim", "sfwNonMuslim"];
         const deeniyath = { odd: {}, even: {} };
         deeniyathSections.forEach(sec => {
@@ -84,27 +87,54 @@ const fetchCounts = async (req, res) => {
         });
 
         // ---- SCLR REPORT ---- //
-        const sclr = { odd: { finished: 0, total: 0, pending: 0 }, even: { finished: 0, total: 0, pending: 0 } };
-        const uniqueRegisters = await ApplicationModel.distinct("registerNo", { academicYear, applicationStatus: 0 });
 
-        for (const reg of uniqueRegisters) {
-            const appsForReg = allApplications.filter(app => app.registerNo === reg);
-            const oddSemester = appsForReg.some(app => isOddSemester(app.semester));
-            const evenSemester = appsForReg.some(app => isEvenSemester(app.semester));
+        const sclrCategories = ["Aided", "SFM", "SFW"];
+        const sclr = { odd: {}, even: {} };
 
-            if (oddSemester) sclr.odd.total++;
-            if (evenSemester) sclr.even.total++;
+        sclrCategories.forEach(cat => {
+            sclr.odd[cat] = { finished: 0, total: 0, pending: 0 };
+            sclr.even[cat] = { finished: 0, total: 0, pending: 0 };
+        });
 
-            const hasScholarship = await StudentModel.exists({ registerNo: reg, governmentScholarship: 1 });
-            if (hasScholarship) {
-                if (oddSemester) sclr.odd.finished++;
-                if (evenSemester) sclr.even.finished++;
-            }
-        }
-        sclr.odd.pending = sclr.odd.total - sclr.odd.finished;
-        sclr.even.pending = sclr.even.total - sclr.even.finished;
+        allApplications.forEach(app => {
+            const { category, semester, registerNo } = app;
+            if (!sclrCategories.includes(category)) return;
+
+            const target = isEvenSemester(semester) ? sclr.even : sclr.odd;
+            target[category].total++;
+        });
+
+        // Fetch scholarship status once (OPTIMIZED)
+        const scholarshipStudents = await StudentModel.find(
+            { governmentScholarship: { $in: [1, 2] } },
+            { registerNo: 1 }
+        ).lean();
+
+        const scholarshipSet = new Set(scholarshipStudents.map(s => s.registerNo));
+
+        // Count finished
+        allApplications.forEach(app => {
+            const { category, semester, registerNo } = app;
+            if (!sclrCategories.includes(category)) return;
+            if (!scholarshipSet.has(registerNo)) return;
+
+            const target = isEvenSemester(semester) ? sclr.even : sclr.odd;
+            target[category].finished++;
+        });
+
+        // Calculate pending
+        sclrCategories.forEach(cat => {
+            sclr.odd[cat].pending = sclr.odd[cat].total - sclr.odd[cat].finished;
+            sclr.even[cat].pending = sclr.even[cat].total - sclr.even[cat].finished;
+        });
 
         // ---- TUTOR REPORT ---- //
+
+        const uniqueRegisters = await ApplicationModel.distinct("registerNo", {
+            academicYear,
+            applicationStatus: 0
+        });
+
         const tutor = { odd: { finished: 0, total: 0, pending: 0 }, even: { finished: 0, total: 0, pending: 0 } };
         const tutorFinishedRegisters = await ApplicationModel.distinct("registerNo", { academicYear, tutorVerification: 1 });
 
@@ -112,7 +142,6 @@ const fetchCounts = async (req, res) => {
             const appsForReg = allApplications.filter(app => app.registerNo === reg);
             const oddSemester = appsForReg.some(app => isOddSemester(app.semester));
             const evenSemester = appsForReg.some(app => isEvenSemester(app.semester));
-
             const isTutorFinished = tutorFinishedRegisters.includes(reg);
             if (oddSemester) tutor.odd.total++;
             if (evenSemester) tutor.even.total++;
@@ -132,7 +161,6 @@ const fetchCounts = async (req, res) => {
         res.status(500).json({ error: "Something went wrong", details: err.message });
     }
 };
-
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
