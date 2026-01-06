@@ -1,14 +1,11 @@
 const StudentModel = require('../../../models/Student');
 const ApplicationModel = require('../../../models/Application');
 const DistributionModel = require('../../../models/Distribution');
-const {currentAcademicYear} = require('../../../utils/commonFunctions');
+const { currentAcademicYear } = require('../../../utils/commonFunctions');
 
 // ----------------------------------------------------------------------------------------------------------------
 
 // Fetch applications for Application Management
-
-
-
 
 const fetchApplicationData = async (req, res) => {
 
@@ -16,10 +13,10 @@ const fetchApplicationData = async (req, res) => {
 
         const academicYear = await currentAcademicYear();
         if (!academicYear) {
-            return res.status(400).json({message: "Academic year not found."});
+            return res.status(400).json({ message: "Academic year not found." });
         }
 
-        const applications = await ApplicationModel.find({academicYear}).select(`
+        const applications = await ApplicationModel.find({ academicYear }).select(`
             registerNo name department graduate yearOfAdmission semester category religion
             semesterMarkPercentage semesterGrade semesterArrear
             classAttendancePercentage classAttendanceRemark
@@ -28,7 +25,7 @@ const fetchApplicationData = async (req, res) => {
 
         for (const app of applications) {
 
-            const student = await StudentModel.findOne({registerNo: app.registerNo})
+            const student = await StudentModel.findOne({ registerNo: app.registerNo })
                 .select("section mobileNo aadharNo")
                 .lean();
 
@@ -55,7 +52,7 @@ const fetchApplicationData = async (req, res) => {
 
     } catch (error) {
         console.error('Error in fetching applications for appln manage : ', error);
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({ message: "Internal server error" });
     }
 };
 
@@ -67,21 +64,21 @@ const deleteApplication = async (req, res) => {
 
     try {
 
-        const {id} = req.body;
+        const { id } = req.body;
 
-        if (!id) return res.status(400).json({message: "ID is required"});
+        if (!id) return res.status(400).json({ message: "ID is required" });
 
         const deleted = await ApplicationModel.findByIdAndDelete(id);
 
         if (!deleted) {
-            return res.status(404).json({message: "Application not found"});
+            return res.status(404).json({ message: "Application not found" });
         }
 
-        return res.status(200).json({message: "Application deleted successfully"});
+        return res.status(200).json({ message: "Application deleted successfully" });
 
     } catch (error) {
         console.error("Delete Error : ", error);
-        return res.status(500).json({message: "Server error while deleting"});
+        return res.status(500).json({ message: "Server error while deleting" });
     }
 }
 
@@ -90,16 +87,16 @@ const deleteApplication = async (req, res) => {
 // For updating an application
 
 const updateApplication = async (req, res) => {
+
     try {
-        // Use FormData fields
-        const {oldRegNo, applicationId} = req.body;
+
+        const { oldRegNo, applicationId } = req.body;
         const formData = req.body;
 
         if (!oldRegNo || !applicationId) {
-            return res.status(400).json({message: "Missing required identifiers"});
+            return res.status(400).json({ message: "Missing required identifiers" });
         }
 
-        // ======= FIX FOR NUMBER FIELDS (FormData sends strings) =======
         const numericFields = [
             "classAttendancePercentage",
             "deeniyathMoralAttendancePercentage",
@@ -126,9 +123,9 @@ const updateApplication = async (req, res) => {
         });
 
         await StudentModel.findOneAndUpdate(
-            {registerNo: oldRegNo},
-            {$set: studentUpdate},
-            {runValidators: true}
+            { registerNo: oldRegNo },
+            { $set: studentUpdate },
+            { runValidators: true }
         );
 
         /* ========= APPLICATION (MANY – BASIC DETAILS) ========= */
@@ -143,8 +140,8 @@ const updateApplication = async (req, res) => {
         });
 
         await ApplicationModel.updateMany(
-            {registerNo: oldRegNo},
-            {$set: applicationBasicUpdate}
+            { registerNo: oldRegNo },
+            { $set: applicationBasicUpdate }
         );
 
         /* ========= APPLICATION (ONE – ACADEMIC DETAILS) ========= */
@@ -162,11 +159,17 @@ const updateApplication = async (req, res) => {
 
         await ApplicationModel.findByIdAndUpdate(
             applicationId,
-            {$set: applicationAcademicUpdate},
-            {runValidators: true}
+            { $set: applicationAcademicUpdate },
+            { runValidators: true }
         );
 
         /* ========= DISTRIBUTION (MANY) ========= */
+        const application = await ApplicationModel.findById(applicationId);
+
+        if (!application) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
         const distributionFields = [
             "registerNo", "name", "department",
             "category", "graduate", "semester"
@@ -178,17 +181,20 @@ const updateApplication = async (req, res) => {
         });
 
         await DistributionModel.updateMany(
-            {registerNo: oldRegNo},
-            {$set: distributionUpdate}
+            {
+                registerNo: oldRegNo,
+                academicYear: application.academicYear,
+                createdAt: { $gte: application.createdAt }
+            },
+            { $set: distributionUpdate }
         );
 
         /* ========= FILE UPDATE (JAMATH LETTER) ========= */
-        /* ========= FILE UPDATE (JAMATH LETTER) ========= */
         if (req.file) {
-            const filePath = `zamathfiles\\${req.file.filename}`; // backslash in DB
+            const filePath = `zamathfiles\\${req.file.filename}`;
             await ApplicationModel.findByIdAndUpdate(
                 applicationId,
-                {$set: {jamathLetter: filePath}}
+                { $set: { jamathLetter: filePath } }
             );
         }
 
@@ -212,7 +218,6 @@ const updateApplication = async (req, res) => {
     }
 };
 
-
 // ----------------------------------------------------------------------------------------------------------------
 
-module.exports = {fetchApplicationData, deleteApplication, updateApplication};
+module.exports = { fetchApplicationData, deleteApplication, updateApplication };
