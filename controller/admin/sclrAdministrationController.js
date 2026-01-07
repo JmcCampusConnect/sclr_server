@@ -199,12 +199,10 @@ const quickRejection = async (req, res) => {
             const parentIncome = Number(s.parentAnnualIncome ?? 0);
             const siblingsIncome = Number(s.siblingsIncome ?? 0);
             const combinedIncome = parentIncome + siblingsIncome;
-
             return {
                 ...a, studentId: s._id || null,
                 parentAnnualIncome: parentIncome,
-                siblingsIncome: siblingsIncome,
-                combinedIncome,
+                siblingsIncome: siblingsIncome, combinedIncome,
             };
         }));
 
