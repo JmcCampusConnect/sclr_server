@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const {fetchApplicationData, deleteApplication, updateApplication} = require('../../../controller/admin/manage/applnManageController');
+const { fetchApplicationData, deleteApplication, updateApplication } = require('../../../controller/admin/manage/applnManageController');
 const multer = require('multer');
-
 
 // -----------------------------------------------------------------------------------------------------------------
 
@@ -16,7 +15,7 @@ const storage = multer.diskStorage({
     }
 })
 
-const upload = multer({storage});
+const upload = multer({ storage });
 
 
 

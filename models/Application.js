@@ -35,7 +35,11 @@ const applicationSchema = new mongoose.Schema({
         type: Number,
         required: true,
         default: -1,
-        set: v => (v === -1 || v == null ? v : Number(v.toFixed(2)))
+        set: v => {
+            if (v === null || v === "" || v === undefined) return v;
+            const num = Number(v);
+            return isNaN(num) ? v : Number(num.toFixed(2));
+        }
     },
     semesterArrear: { type: Number, required: true, default: 0 },
 

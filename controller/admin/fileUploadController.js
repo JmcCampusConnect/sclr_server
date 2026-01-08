@@ -10,28 +10,51 @@ const uploadMarkExcel = async (req, res) => {
 
         const { excelData } = req.body;
 
-        if (!excelData || excelData.length === 0) {
+        if (!Array.isArray(excelData) || excelData.length === 0) {
             return res.status(400).json({ message: "Excel data is empty" });
         }
 
-        const updates = excelData.map(async (row) => {
-            if (!row._id) return;
-            await ApplicationModel.findByIdAndUpdate(
-                row._id,
-                {
-                    semesterMarkPercentage: row.semesterMarkPercentage === "" ? -1 : Number(row.semesterMarkPercentage),
-                    semesterArrear: row.semesterArrear === "" ? 0 : Number(row.semesterArrear),
-                    semesterGrade: row.semesterGrade || "A"
-                },
-                { new: true }
-            );
-        });
+        const updates = excelData
+            .filter(row => row._id)
+            .map(row => {
+                const percentage =
+                    row.semesterMarkPercentage === "" ||
+                        row.semesterMarkPercentage === null ||
+                        row.semesterMarkPercentage === undefined
+                        ? -1
+                        : Number(row.semesterMarkPercentage);
+
+                const arrear =
+                    row.semesterArrear === "" ||
+                        row.semesterArrear === null ||
+                        row.semesterArrear === undefined
+                        ? 0
+                        : Number(row.semesterArrear);
+
+                return ApplicationModel.findByIdAndUpdate(
+                    row._id,
+                    {
+                        semesterMarkPercentage: isNaN(percentage) ? -1 : percentage,
+                        semesterArrear: isNaN(arrear) ? 0 : arrear,
+                        semesterGrade: row.semesterGrade || "A"
+                    },
+                    { new: true }
+                );
+            });
+
+        if (!updates.length) {
+            return res.status(400).json({ message: "No valid rows to update" });
+        }
 
         await Promise.all(updates);
 
-        res.status(200).json({ message: "Excel data updated successfully" });
+        res.status(200).json({
+            message: "Excel data updated successfully",
+            updatedCount: updates.length
+        });
+
     } catch (error) {
-        console.error("Excel upload error in coe mark entry data : ", error);
+        console.error("Excel upload error in COE mark entry : ", error);
         res.status(500).json({ message: "Server error while updating" });
     }
 }

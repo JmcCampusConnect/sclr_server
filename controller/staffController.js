@@ -36,7 +36,15 @@ const getStudentCOE = async (req, res) => {
     try {
 
         const academicYear = await currentAcademicYear();
-        const filter = { academicYear, semester: { $nin: ["I"] }, semesterMarkPercentage: -1 };
+        const filter = {
+            academicYear, semester: { $nin: ["I"] },
+            $or: [
+                { semesterMarkPercentage: -1 },
+                { semesterMarkPercentage: null },
+                { semesterMarkPercentage: "" },
+                { semesterMarkPercentage: { $exists: false } }
+            ]
+        };
         const StuData = await ApplicationModel.find(filter);
         const totalApplications = await ApplicationModel.countDocuments({ academicYear });
         const pending = StuData.length
