@@ -14,11 +14,32 @@ const fetchUniqueValues = async (req, res) => {
         const [
             appYears, stuYears, distYears, donYears, transYears, hasAssignedStaff
         ] = await Promise.all([
-            ApplicationModel.distinct('yearOfAdmission'),
-            StudentModel.distinct('yearOfAdmission'),
-            DistributionModel.distinct('academicYear'),
-            DonorModel.distinct('academicYear'),
-            TransactionModel.distinct('academicYear'),
+
+            ApplicationModel.aggregate([
+                { $group: { _id: "$yearOfAdmission", count: { $sum: 1 } } },
+                { $sort: { _id: 1 } }
+            ]),
+
+            StudentModel.aggregate([
+                { $group: { _id: "$yearOfAdmission", count: { $sum: 1 } } },
+                { $sort: { _id: 1 } }
+            ]),
+
+            DistributionModel.aggregate([
+                { $group: { _id: "$academicYear", count: { $sum: 1 } } },
+                { $sort: { _id: 1 } }
+            ]),
+
+            DonorModel.aggregate([
+                { $group: { _id: "$academicYear", count: { $sum: 1 } } },
+                { $sort: { _id: 1 } }
+            ]),
+
+            TransactionModel.aggregate([
+                { $group: { _id: "$academicYear", count: { $sum: 1 } } },
+                { $sort: { _id: 1 } }
+            ]),
+
             StaffModel.findOne({
                 role: { $ne: 1 },
                 batch: { $ne: null, $exists: true },
@@ -27,13 +48,14 @@ const fetchUniqueValues = async (req, res) => {
         ]);
 
         res.json({
-            success: true, data: {
-                application: appYears.sort(),
-                student: stuYears.sort(),
-                distribution: distYears.sort(),
-                donor: donYears.sort(),
-                transaction: transYears.sort(),
-                staff: hasAssignedStaff ? ['Purge All Staff Assignments'] : [],
+            success: true,
+            data: {
+                application: appYears,
+                student: stuYears,
+                distribution: distYears,
+                donor: donYears,
+                transaction: transYears,
+                staff: hasAssignedStaff ? [{ year: 'ALL', count: 'Assigned Staff' }] : [],
             },
         });
     } catch (err) {
