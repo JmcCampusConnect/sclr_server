@@ -8,8 +8,6 @@ const { currentAcademicYear } = require('../utils/commonFunctions');
 
 const registerApplicationSave = async (req, res) => {
 
-    // console.log(req.body)
-
     let savedStudent;
 
     try {

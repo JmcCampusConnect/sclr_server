@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-
 const transactionSchema = new mongoose.Schema({
 
     // 1. Donor Identification

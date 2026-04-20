@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const StudentModel = require('../models/Student');
 const StaffModel = require('../models/Staff');
+const logger = require('../utils/logger');
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -21,34 +22,61 @@ const createRefreshToken = (payload) => {
 // Login User for authentication
 
 const loginUser = async (req, res) => {
-
+    
     const { userId, userPassword } = req.body;
 
-    const studentUser = await StudentModel.findOne({ registerNo: userId });
-    const staffUser = await StaffModel.findOne({ staffId: userId });
+    logger.info("Login attempt", {
+        userId,
+        route: "/login",
+        method: "POST"
+    });
 
-    let user = studentUser || staffUser;
-    if (!user) return res.status(404).json({ message: "User not found" });
+    try {
+        const studentUser = await StudentModel.findOne({ registerNo: userId });
+        const staffUser = await StaffModel.findOne({ staffId: userId });
 
-    if (userPassword !== user.password)
-        return res.status(400).json({ message: "Password does not match" });
+        let user = studentUser || staffUser;
 
-    const role = studentUser ? 0 : user.role;
-    const id = studentUser ? user.registerNo : user.staffId;
+        if (!user) {
+            logger.warn("User not found", { userId });
+            return res.status(404).json({ message: "User not found" });
+        }
 
-    const accessToken = createAccessToken({ id, role });
-    const refreshToken = createRefreshToken({ id, role });
+        if (userPassword !== user.password) {
+            logger.warn("Invalid password", { userId });
+            return res.status(400).json({ message: "Password does not match" });
+        }
 
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true, secure: false,
-        sameSite: "strict", path: "/auth/refresh"
-    })
+        const role = studentUser ? 0 : user.role;
+        const id = studentUser ? user.registerNo : user.staffId;
 
-    res.status(200).json({
-        status: 200, accessToken,
-        user: { userId: id, role },
-    })
-}
+        logger.info("Login successful", { userId: id, role });
+
+        const accessToken = createAccessToken({ id, role });
+        const refreshToken = createRefreshToken({ id, role });
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "strict",
+            path: "/auth/refresh"
+        });
+
+        res.status(200).json({
+            status: 200,
+            accessToken,
+            user: { userId: id, role },
+        });
+
+    } catch (err) {
+        logger.error("Login error", {
+            message: err.message,
+            stack: err.stack
+        });
+
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
