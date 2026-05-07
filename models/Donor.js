@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const donorSchema = new mongoose.Schema({
 
     // 1. Donor Identification
-    donorId: { type: String, required: true },
+    donorId: { type: String, required: true,unique: true },
     donorName: { type: String, required: true },
     donorType: { type: String, required: true },
     panOrAadhaar: { type: String },
@@ -27,10 +27,5 @@ const donorSchema = new mongoose.Schema({
     zakkathBal: { type: Number },
 
 }, { timestamps: true });
-
-donorSchema.index(
-    { academicYear: 1, donorId: 1 },
-    { unique: true }
-);
 
 module.exports = mongoose.model('donor', donorSchema);

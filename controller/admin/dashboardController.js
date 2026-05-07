@@ -17,7 +17,7 @@ const fetchCardData = async (req, res) => {
 		const countQueries = [
 			{ key: 'totalRenewals', model: ApplicationModel, query: { academicYear, sclrType: 'Renewal' } },
 			{ key: 'totalFreshers', model: ApplicationModel, query: { academicYear, sclrType: 'Fresher' } },
-			{ key: 'totalDonors', model: DonorModel, query: { academicYear } },
+			{ key: 'totalDonors', model: DonorModel, query: {} },
 		];
 
 		const results = await Promise.all(countQueries.map(item => item.model.countDocuments(item.query)));

@@ -12,8 +12,7 @@ const { currentAcademicYear } = require('../../utils/commonFunctions');
 const fetchDonors = async (req, res) => {
     
     try {
-        const academicYear = await currentAcademicYear();
-        const donors = await DonorModel.find({ academicYear }).sort({ createdAt: -1 });
+        const donors = await DonorModel.find().sort({ createdAt: -1 });
         return res.json({ donors });
     } catch (error) {
         console.error('Error fetching donors : ', error);
@@ -28,11 +27,8 @@ const fetchCardsData = async (req, res) => {
 
     try {
 
-        const academicYear = await currentAcademicYear();
-
         const sumField = async (field) => {
             const result = await DonorModel.aggregate([
-                { $match: { academicYear } },
                 { $group: { _id: null, total: { $sum: `$${field}` } } },
             ]);
             return result[0]?.total || 0;

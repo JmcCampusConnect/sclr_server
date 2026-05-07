@@ -2,7 +2,6 @@ const StudentModel = require('../../models/Student');
 const ApplicationModel = require('../../models/Application');
 const AcademicModel = require('../../models/Academic');
 const DistributionModel = require('../../models/Distribution');
-const DonorModel = require('../../models/Donor');
 const TransactionModel = require('../../models/Transaction');
 const DepartmentModel = require('../../models/Department');
 const { currentAcademicYear } = require('../../utils/commonFunctions');

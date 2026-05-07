@@ -31,7 +31,7 @@ const fetchUniqueValues = async (req, res) => {
             ]),
 
             DonorModel.aggregate([
-                { $group: { _id: "$academicYear", count: { $sum: 1 } } },
+                { $group: { count: { $sum: 1 } } },
                 { $sort: { _id: 1 } }
             ]),
 
@@ -117,9 +117,7 @@ const deleteData = async (req, res) => {
         }
 
         if (selections.donor?.length) {
-            const result = await DonorModel.deleteMany({
-                academicYear: { $in: selections.donor },
-            });
+            const result = await DonorModel.deleteMany();
             summary.donor = result.deletedCount;
         }
 
