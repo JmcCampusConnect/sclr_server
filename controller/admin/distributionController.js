@@ -32,6 +32,7 @@ const fetchCardsData = async (req, res) => {
         const totalBenefitted = await DistributionModel.distinct("registerNo", { academicYear });
         const totalBenefittedCount = totalBenefitted.length;
         const donors = await DonorModel.aggregate([
+            { $match: { academicYear } },
             {
                 $group: { _id: null, totalGeneral: { $sum: "$generalAmt" }, totalZakat: { $sum: "$zakkathAmt" } },
             },
@@ -96,7 +97,7 @@ const updateStatement = async (req, res) => {
             if (oldAmtType === newAmtType) {
                 const diff = newAmount - oldAmount;
                 await DonorModel.updateOne(
-                    { donorId: oldDonorId },
+                    { donorId: oldDonorId, academicYear },
                     { $inc: { [oldAmtType]: -diff } }
                 );
             }
@@ -105,13 +106,13 @@ const updateStatement = async (req, res) => {
             else {
                 // Add back to old type
                 await DonorModel.updateOne(
-                    { donorId: oldDonorId },
+                    { donorId: oldDonorId, academicYear },
                     { $inc: { [oldAmtType]: oldAmount } }
                 );
 
                 // Deduct from new type
                 await DonorModel.updateOne(
-                    { donorId: oldDonorId },
+                    { donorId: oldDonorId, academicYear },
                     { $inc: { [newAmtType]: -newAmount } }
                 );
             }
@@ -121,13 +122,13 @@ const updateStatement = async (req, res) => {
         else {
             // Revert old donor
             await DonorModel.updateOne(
-                { donorId: oldDonorId },
+                { donorId: oldDonorId, academicYear },
                 { $inc: { [oldAmtType]: oldAmount } }
             );
 
             // Deduct from new donor
             await DonorModel.updateOne(
-                { donorId: newDonorId },
+                { donorId: newDonorId, academicYear },
                 { $inc: { [newAmtType]: -newAmount } }
             );
         }
@@ -143,7 +144,7 @@ const updateStatement = async (req, res) => {
 
         if (oldDonorId !== newDonorId) {
             const donor = await DonorModel.findOne({
-                donorId: newDonorId
+                donorId: newDonorId, academicYear
             });
             if (!donor) { return res.status(404).json({ message: "New donor not found" }) }
             req.body.donorName = donor.donorName;
@@ -202,7 +203,7 @@ const deleteStatement = async (req, res) => {
         // 2️⃣ Update donor balances
         if (amtType === 'generalBal') {
             await DonorModel.updateOne(
-                { donorId },
+                { donorId, academicYear },
                 {
                     $inc: {
                         generalBal: givenAmt,
@@ -214,7 +215,7 @@ const deleteStatement = async (req, res) => {
 
         if (amtType === 'zakkathBal') {
             await DonorModel.updateOne(
-                { donorId },
+                { donorId, academicYear },
                 {
                     $inc: {
                         zakkathBal: givenAmt,
