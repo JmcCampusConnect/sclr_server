@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {fetchCounts } = require('../../controller/admin/progressReportController');
+const { fetchCounts } = require('../../controller/admin/progressReportController');
 
 // -----------------------------------------------------------------------------------------------------------------
 

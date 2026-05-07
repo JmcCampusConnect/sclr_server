@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {fetchStudents, fetchDonors, sclrDistributions, rejectApplications, quickRejection,quickRejectApplications} = require('../../controller/admin/sclrAdministrationController');
+const { fetchStudents, fetchDonors, sclrDistributions, rejectApplications, quickRejection, quickRejectApplications } = require('../../controller/admin/sclrAdministrationController');
 
 // -----------------------------------------------------------------------------------------------------------------
 
