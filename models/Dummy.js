@@ -16,7 +16,15 @@ const donorSchema = new mongoose.Schema({
     address: { type: String },
     district: { type: String },
     state: { type: String },
-    pinCode: { type: Number }
+    pinCode: { type: Number },
+
+    // 4. Donation Details
+    generalAmt: { type: Number },
+    zakkathAmt: { type: Number },
+
+    // 5. Financial Balances
+    generalBal: { type: Number },
+    zakkathBal: { type: Number },
 
 }, { timestamps: true });
 
