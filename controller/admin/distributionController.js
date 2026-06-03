@@ -2,6 +2,7 @@ const StudentModel = require('../../models/Student');
 const ApplicationModel = require('../../models/Application');
 const AcademicModel = require('../../models/Academic');
 const DonorModel = require('../../models/Donor');
+const FundModel = require('../../models/Fund');
 const DistributionModel = require('../../models/Distribution');
 const { currentAcademicYear } = require('../../utils/commonFunctions');
 const { mongoose } = require('mongoose');
@@ -31,7 +32,7 @@ const fetchCardsData = async (req, res) => {
         const totalApplicants = await ApplicationModel.countDocuments({ academicYear });
         const totalBenefitted = await DistributionModel.distinct("registerNo", { academicYear });
         const totalBenefittedCount = totalBenefitted.length;
-        const donors = await DonorModel.aggregate([
+        const donors = await FundModel.aggregate([
             { $match: { academicYear } },
             {
                 $group: { _id: null, totalGeneral: { $sum: "$generalAmt" }, totalZakat: { $sum: "$zakkathAmt" } },
@@ -96,7 +97,7 @@ const updateStatement = async (req, res) => {
             // Same amount type ➜ apply difference
             if (oldAmtType === newAmtType) {
                 const diff = newAmount - oldAmount;
-                await DonorModel.updateOne(
+                await FundModel.updateOne(
                     { donorId: oldDonorId, academicYear },
                     { $inc: { [oldAmtType]: -diff } }
                 );
@@ -105,13 +106,13 @@ const updateStatement = async (req, res) => {
             // Amount type changed
             else {
                 // Add back to old type
-                await DonorModel.updateOne(
+                await FundModel.updateOne(
                     { donorId: oldDonorId, academicYear },
                     { $inc: { [oldAmtType]: oldAmount } }
                 );
 
                 // Deduct from new type
-                await DonorModel.updateOne(
+                await FundModel.updateOne(
                     { donorId: oldDonorId, academicYear },
                     { $inc: { [newAmtType]: -newAmount } }
                 );
@@ -121,13 +122,13 @@ const updateStatement = async (req, res) => {
         // CASE 2️⃣ DIFFERENT DONOR
         else {
             // Revert old donor
-            await DonorModel.updateOne(
+            await FundModel.updateOne(
                 { donorId: oldDonorId, academicYear },
                 { $inc: { [oldAmtType]: oldAmount } }
             );
 
             // Deduct from new donor
-            await DonorModel.updateOne(
+            await FundModel.updateOne(
                 { donorId: newDonorId, academicYear },
                 { $inc: { [newAmtType]: -newAmount } }
             );
@@ -143,7 +144,7 @@ const updateStatement = async (req, res) => {
         // If donorId changed, fetch correct donor details
 
         if (oldDonorId !== newDonorId) {
-            const donor = await DonorModel.findOne({
+            const donor = await FundModel.findOne({
                 donorId: newDonorId, academicYear
             });
             if (!donor) { return res.status(404).json({ message: "New donor not found" }) }
@@ -202,24 +203,22 @@ const deleteStatement = async (req, res) => {
 
         // 2️⃣ Update donor balances
         if (amtType === 'generalBal') {
-            await DonorModel.updateOne(
+            await FundModel.updateOne(
                 { donorId, academicYear },
                 {
                     $inc: {
                         generalBal: givenAmt,
-                        generalAmt: givenAmt
                     }
                 }
             );
         }
 
         if (amtType === 'zakkathBal') {
-            await DonorModel.updateOne(
+            await FundModel.updateOne(
                 { donorId, academicYear },
                 {
                     $inc: {
                         zakkathBal: givenAmt,
-                        zakkathAmt: givenAmt
                     }
                 }
             );

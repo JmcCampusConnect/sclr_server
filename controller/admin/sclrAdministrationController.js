@@ -1,6 +1,7 @@
 const StudentModel = require('../../models/Student');
 const ApplicationModel = require('../../models/Application');
 const DonorModel = require('../../models/Donor');
+const FundModel = require('../../models/Fund');
 const DistributionModel = require('../../models/Distribution');
 const { currentAcademicYear } = require('../../utils/commonFunctions');
 
@@ -46,7 +47,7 @@ const fetchDonors = async (req, res) => {
 
     try {
         const currAcYear = await currentAcademicYear();
-        const donors = await DonorModel.find({ academicYear: currAcYear });
+        const donors = await FundModel.find({ academicYear: currAcYear });
         return res.json({ donors });
     } catch (error) {
         console.error("Error fetching donars for admin application : ", error);
@@ -74,7 +75,7 @@ const sclrDistributions = async (req, res) => {
 
         for (const s of scholarships) {
 
-            const donor = await DonorModel.findOne({ donorId: s.donorId, academicYear });
+            const donor = await FundModel.findOne({ donorId: s.donorId, academicYear });
             if (!donor) {
                 console.warn(`Donor not found : ${s.donorId} (${s.donorName})`);
                 continue;
