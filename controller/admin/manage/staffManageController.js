@@ -9,13 +9,15 @@ const { currentAcademicYear } = require('../../../utils/commonFunctions');
 // Fetch donors
 
 const fetchStaffs = async (req, res) => {
-
     try {
         const staffs = await StaffModel.find({
             role: 2,
-            category: { $in: [null, undefined] }
+            batch: { $exists: false },
+            department: { $exists: false },
+            category: { $exists: false },
+            section: { $exists: false }
         }).sort({ createdAt: -1 });
-
+        
         return res.json({ staffs });
     } catch (error) {
         console.error('Error fetching staffs : ', error);
