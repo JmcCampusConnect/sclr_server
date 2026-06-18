@@ -240,7 +240,6 @@ const fetchStudentData = async (req, res) => {
 
         if (canApply) removeFields.push("semester");
         removeFields.forEach(field => delete studentApplnData[field]);
-        console.log(studentApplnData)
         return res.json({ status: 200, student: studentApplnData, canApply, adminCanApply });
 
     } catch (err) {
