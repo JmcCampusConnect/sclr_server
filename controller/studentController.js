@@ -84,8 +84,10 @@ const forgotPassword = async (req, res) => {
         const { registerNo, aadharNo, mobileNo, newPassword } = req.body;
 
         // Step 1: First find the student by register number
-        const student = await StudentModel.findOne({ registerNo });
-
+        const student = await StudentModel.findOne({ 
+            registerNo: { $regex: new RegExp(`^${registerNo}$`, 'i') }
+        });
+        
         // If student not found with register number
         if (!student) {
             return res.status(404).json({ 
