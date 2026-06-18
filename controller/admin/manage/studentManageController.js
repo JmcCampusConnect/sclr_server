@@ -24,12 +24,12 @@ const fetchStudentData = async (req, res) => {
 const passwordSemBasedChange = async (req, res) => {
 
     const { registerNo } = req.params;
-    const { password, isSemBased } = req.body;
+    const { password, isSemBased, mobileNo, aadharNo } = req.body;
 
     try {
         await StudentModel.updateOne(
             { registerNo },
-            { $set: { password, isSemBased } }
+            { $set: { password, isSemBased, mobileNo, aadharNo } }
         );
         res.json({ success: true, message: "Student updated successfully" });
     } catch (err) {

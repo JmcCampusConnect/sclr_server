@@ -83,13 +83,63 @@ const forgotPassword = async (req, res) => {
 
         const { registerNo, aadharNo, mobileNo, newPassword } = req.body;
 
-        const student = await StudentModel.findOneAndUpdate({ mobileNo, aadharNo, registerNo }, { password: newPassword });
-        if (!student) return res.status(404).json({ message: "Student not found" });
-        return res.status(200).json({ message: "Password updated successfully" });
+        // Step 1: First find the student by register number
+        const student = await StudentModel.findOne({ registerNo });
+
+        // If student not found with register number
+        if (!student) {
+            return res.status(404).json({ 
+                message: "Student not found with this Register Number. Please check and try again." 
+            });
+        }
+
+        // Step 2: Check if mobile number is correct
+        const isMobileCorrect = student.mobileNo === mobileNo;
+        
+        // Step 3: Check if aadhar number is correct
+        const isAadharCorrect = student.aadharNo === aadharNo;
+
+        // Step 4: Handle different scenarios
+        if (!isMobileCorrect && !isAadharCorrect) {
+            // Both are incorrect
+            return res.status(400).json({ 
+                message: "Both Mobile Number and Aadhar Number are incorrect. Please verify your details." 
+            });
+        } else if (!isMobileCorrect) {
+            // Only mobile is incorrect
+            return res.status(400).json({ 
+                message: "invalid mobile number" 
+            });
+        } else if (!isAadharCorrect) {
+            // Only aadhar is incorrect
+            return res.status(400).json({ 
+                message: "invalid aadhar number" 
+            });
+        }
+
+        // Step 5: All validations passed - update the password
+        const updatedStudent = await StudentModel.findOneAndUpdate(
+            { registerNo }, 
+            { password: newPassword },
+            { new: true } 
+        );
+
+        if (!updatedStudent) {
+            return res.status(500).json({ 
+                message: "Failed to update password. Please try again." 
+            });
+        }
+
+        return res.status(200).json({ 
+            success: true,
+            message: "Password updated successfully" 
+        });
 
     } catch (error) {
         console.error("Error updating password : ", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ 
+            message: "Internal server error. Please try again later." 
+        });
     }
 }
 
