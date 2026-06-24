@@ -1,4 +1,7 @@
 const StudentModel = require('../../../models/Student');
+const ApplicationModel = require('../../../models/Application');
+const DistributionModel = require('../../../models/Distribution');
+const { currentAcademicYear } = require('../../../utils/commonFunctions');
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,45 +66,123 @@ const fetchStudentData = async (req, res) => {
 // Update student 
 
 const updateStudent = async (req, res) => {
-
+    
     const { registerNo } = req.params;
     const updateData = req.body;
 
     try {
-
         const { _id, __v, createdAt, updatedAt, ...cleanData } = updateData;
+        
+        const oldRegisterNo = registerNo;
+        const newRegisterNo = cleanData.registerNo;
+        const isRegisterNoChanged = oldRegisterNo !== newRegisterNo;
 
-        const result = await StudentModel.findOneAndUpdate(
-            { registerNo },
+        const studentResult = await StudentModel.findOneAndUpdate(
+            { registerNo: oldRegisterNo },
             { $set: cleanData },
             { new: true, runValidators: true }
         );
 
-        if (!result) {
+        if (!studentResult) {
             return res.status(404).json({
                 success: false,
                 message: 'Student not found'
             });
         }
 
+        // 2. Prepare update operations
+        const operations = [];
+
+        // Applications update
+        const appUpdate = {
+            filter: { registerNo: isRegisterNoChanged ? oldRegisterNo : newRegisterNo },
+            update: {
+                $set: {
+                    name: cleanData.name,
+                    department: cleanData.department,
+                    category: cleanData.category,
+                    religion: cleanData.religion,
+                    yearOfAdmission: cleanData.yearOfAdmission,
+                    graduate: cleanData.graduate
+                }
+            }
+        };
+        if (isRegisterNoChanged) {
+            appUpdate.update.$set.registerNo = newRegisterNo;
+        }
+        operations.push(
+            ApplicationModel.updateMany(appUpdate.filter, appUpdate.update)
+        );
+
+        // Distributions update
+        const distUpdate = {
+            filter: { registerNo: isRegisterNoChanged ? oldRegisterNo : newRegisterNo },
+            update: {
+                $set: {
+                    name: cleanData.name,
+                    department: cleanData.department,
+                    category: cleanData.category,
+                    graduate: cleanData.graduate
+                }
+            }
+        };
+        if (isRegisterNoChanged) {
+            distUpdate.update.$set.registerNo = newRegisterNo;
+        }
+        operations.push(
+            DistributionModel.updateMany(distUpdate.filter, distUpdate.update)
+        );
+
+        // Execute all updates
+        const results = await Promise.allSettled(operations);
+
+        // Check if any update failed
+        const failedUpdates = results.filter(r => r.status === 'rejected');
+        if (failedUpdates.length > 0) {
+            console.error('Some updates failed:', failedUpdates);
+            return res.status(207).json({
+                success: true,
+                partial: true,
+                message: `Student updated but ${failedUpdates.length} related updates failed`,
+                errors: failedUpdates.map(f => f.reason?.message || 'Unknown error'),
+                student: studentResult
+            });
+        }
+
         res.json({
             success: true,
-            message: 'Student updated successfully',
-            student: result
+            message: isRegisterNoChanged 
+                ? 'Student and related records updated successfully' 
+                : 'Student updated successfully',
+            student: studentResult,
+            updatedCounts: {
+                applications: results[0]?.value?.modifiedCount || 0,
+                distributions: results[1]?.value?.modifiedCount || 0
+            }
         });
+
     } catch (err) {
         console.error('Error updating student:', err);
+        
         if (err.name === 'ValidationError') {
             const errors = Object.values(err.errors).map(e => e.message);
             return res.status(400).json({
                 success: false,
-                message: 'Validation error', errors
+                message: 'Validation error',
+                errors
+            });
+        }
+
+        if (err.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: 'Register number already exists'
             });
         }
 
         res.status(500).json({
             success: false,
-            message: 'Internal server error'
+            message: err.message || 'Internal server error'
         });
     }
 };
