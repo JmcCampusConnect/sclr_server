@@ -69,4 +69,12 @@ const applicationSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+applicationSchema.index(
+    { registerNo: 1, academicYear: 1, semester: 1 },
+    {
+        unique: true,
+        name: 'unique_student_semester_application'
+    }
+);
+
 module.exports = mongoose.model("application", applicationSchema);

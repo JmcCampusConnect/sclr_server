@@ -252,25 +252,109 @@ const fetchStudentData = async (req, res) => {
 
 // Application save through register application menu
 
+// Application save through register application menu
 const registerApplication = async (req, res) => {
-
-    // console.log(req.body)
 
     let savedStudent;
 
     try {
-        const academicYear = await currentAcademicYear()
+
+        const academicYear = await currentAcademicYear();
         const formData = { ...req.body };
-        if (req.file) { formData.jamathLetter = req.file.path }
+        
+        // ✅ CHECK 1: Validate required fields
+        const { registerNo, semester } = formData;
+        if (!registerNo || !semester) {
+            return res.status(400).json({
+                status: 400,
+                message: "Register Number and Semester are required"
+            });
+        }
+
+        // ✅ CHECK 2: Check for existing application for this specific semester
+        const existingApp = await ApplicationModel.findOne({
+            registerNo: registerNo,
+            semester: semester,
+            academicYear: academicYear
+        });
+
+        if (existingApp) {
+            return res.status(400).json({
+                status: 400,
+                message: `You have already submitted an application for ${semester} semester.`
+            });
+        }
+
+        // ✅ CHECK 3: Check total applications limit
+        const totalApps = await ApplicationModel.countDocuments({
+            registerNo: registerNo,
+            academicYear: academicYear
+        });
+
+        // Check if student already exists in database
+        const existingStudent = await StudentModel.findOne({ registerNo });
+        
+        if (existingStudent) {
+            if (existingStudent.isSemBased === 1) {
+                if (totalApps >= 2) {
+                    return res.status(400).json({
+                        status: 400,
+                        message: "You have already submitted the maximum number of applications for this academic year."
+                    });
+                }
+            } else {
+                if (totalApps >= 1) {
+                    return res.status(400).json({
+                        status: 400,
+                        message: "You have already submitted an application for this academic year."
+                    });
+                }
+            }
+        }
+
+        // ✅ CHECK 4: Check if student already registered (prevent duplicate student creation)
+        if (existingStudent) {x``
+            return res.status(400).json({
+                status: 400,
+                message: "This Register Number is already registered. Please use the login application."
+            });
+        }
+
+        // ✅ CHECK 5: File upload handling
+        if (req.file) { 
+            formData.jamathLetter = req.file.path; 
+        }
+
+        // Proceed with saving
         const studentBasicDetails = new StudentModel(formData);
-        const studentOtherDetails = new ApplicationModel({ ...formData, academicYear });
+        const studentOtherDetails = new ApplicationModel({ 
+            ...formData, 
+            academicYear 
+        });
+        
         savedStudent = await studentBasicDetails.save();
         await studentOtherDetails.save();
-        return res.status(201).json({ status: 201, message: 'Application registered successfully' });
+        
+        return res.status(201).json({ 
+            status: 201, 
+            message: 'Application registered successfully' 
+        });
+
     } catch (error) {
-        if (savedStudent?._id) { await StudentModel.findByIdAndDelete(savedStudent._id) }
-        console.error('Error in saving register application : ', error.message)
-        return res.status(500).json({ message: 'Internal Server Error' })
+        if (savedStudent?._id) { 
+            await StudentModel.findByIdAndDelete(savedStudent._id); 
+        }
+        if (error.code === 11000) {
+            return res.status(400).json({
+                status: 400,
+                message: 'An application already exists for this semester.'
+            });
+        }
+        console.error('Error in saving register application:', error.message);
+        return res.status(500).json({ 
+            status: 500,
+            message: 'Internal Server Error' 
+        });
     }
 }
 
@@ -280,12 +364,49 @@ const registerApplication = async (req, res) => {
 
 const loginApplication = async (req, res) => {
 
-    const { academicYear } = req.body;
+    const { registerNo, semester, academicYear } = req.body;
 
     try {
 
         const currAcademicYear = await currentAcademicYear();
         const formData = { ...req.body };
+
+        // Check for existing application for this specific semester
+        const existingApp = await ApplicationModel.findOne({
+            registerNo: registerNo,
+            semester: semester,
+            academicYear: currAcademicYear
+        });
+
+        if (existingApp) {
+            return res.status(400).json({
+                status: 400,
+                message: `You have already submitted an application for ${semester} semester.`
+            });
+        }
+
+        const totalApps = await ApplicationModel.countDocuments({
+            registerNo: registerNo,
+            academicYear: currAcademicYear
+        });
+
+        const student = await StudentModel.findOne({ registerNo });
+        
+        if (student && student.isSemBased === 1) {
+            if (totalApps >= 2) {
+                return res.status(400).json({
+                    status: 400,
+                    message: "You have already submitted the maximum number of applications for this academic year."
+                });
+            }
+        } else {
+            if (totalApps >= 1) {
+                return res.status(400).json({
+                    status: 400,
+                    message: "You have already submitted an application for this academic year."
+                });
+            }
+        }
 
         formData.lastYearCreditedAmount = Number(formData.lastYearCreditedAmount) || 0;
         formData.currentYearCreditedAmount = Number(formData.currentYearCreditedAmount) || 0;
@@ -294,16 +415,28 @@ const loginApplication = async (req, res) => {
             formData.lastYearCreditedAmount = formData.currentYearCreditedAmount;
             formData.currentYearCreditedAmount = 0;
         }
-        if (req.file) { formData.jamathLetter = req.file.path }
+        
+        if (req.file) { 
+            formData.jamathLetter = req.file.path; 
+        }
 
-        const studentApplicationDetails = new ApplicationModel({ ...formData, academicYear: currAcademicYear });
+        const studentApplicationDetails = new ApplicationModel({ 
+            ...formData, 
+            academicYear: currAcademicYear 
+        });
         await studentApplicationDetails.save();
 
         if (formData.registerNo) {
-
-            const studentFields = Object.keys(StudentModel.schema.paths).filter(field => !['createdAt', 'updatedAt', '__v'].includes(field));
+            const studentFields = Object.keys(StudentModel.schema.paths)
+                .filter(field => !['createdAt', 'updatedAt', '__v'].includes(field));
             const updateData = { $set: {} };
-            for (const key of Object.keys(formData)) { if (studentFields.includes(key)) { updateData.$set[key] = formData[key] } }
+            
+            for (const key of Object.keys(formData)) {
+                if (studentFields.includes(key)) {
+                    updateData.$set[key] = formData[key];
+                }
+            }
+            
             if (formData.siblingsStatus === "No") {
                 updateData.$unset = {
                     siblingsCount: "",
@@ -311,17 +444,22 @@ const loginApplication = async (req, res) => {
                     siblingsIncome: ""
                 };
             }
+            
             await StudentModel.findOneAndUpdate(
                 { registerNo: formData.registerNo },
                 updateData,
                 { new: true }
-            )
+            );
         }
-        return res.status(201).json({ status: 201, message: 'Application registered successfully' });
+
+        return res.status(201).json({ 
+            status: 201, 
+            message: 'Application registered successfully' 
+        });
 
     } catch (error) {
-        console.error('Error in saving login application : ', error.message)
-        return res.status(500).json({ message: 'Internal Server Error' })
+        console.error('Error in saving login application:', error.message);
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
 }
 
