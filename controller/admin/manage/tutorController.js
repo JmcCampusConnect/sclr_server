@@ -1,4 +1,4 @@
-const StaffModel = require('../../../models/Staff'); 
+const StaffModel = require('../../../models/Staff');
 const DepartmentModel = require('../../../models/Department');
 const XLSX = require('xlsx');
 
@@ -81,20 +81,24 @@ const updateTutor = async (req, res) => {
 
     try {
 
-        const { staffId, staffName, batch, department, category, section } = req.body;
-
+        const { staffId } = req.params;
+        const { staffName, batch, department, category, section, password } = req.body;
         if (!staffId || !staffName || !batch || !department || !category || !section) {
             return sendError(res, 400, 'All fields are required to update a tutor.');
         }
-
         const updatedTutor = await StaffModel.findOneAndUpdate(
             { staffId },
-            { staffName, batch, department, category, section },
+            {
+                staffName,
+                batch,
+                department,
+                category,
+                section,
+                password,
+            },
             { new: true }
         );
-
         if (!updatedTutor) { return sendError(res, 404, 'Tutor not found.') }
-
         return sendSuccess(res, 200, 'Tutor updated successfully.', { tutor: updatedTutor });
     } catch (error) {
         return sendError(res, 500, 'Server error while updating tutor.', error);
@@ -106,21 +110,11 @@ const updateTutor = async (req, res) => {
 // -----------------------------------------------------------------------------
 
 const deleteTutor = async (req, res) => {
-
     try {
-
-        const { staffId } = req.body;
-
-        if (!staffId) {
-            return sendError(res, 400, 'Staff ID is required to delete a tutor.');
-        }
-
+        const { staffId } = req.params;
+        if (!staffId) { return sendError(res, 400, 'Staff ID is required to delete a tutor.') }
         const deletedTutor = await StaffModel.findOneAndDelete({ staffId });
-
-        if (!deletedTutor) {
-            return sendError(res, 404, 'Tutor not found.');
-        }
-
+        if (!deletedTutor) { return sendError(res, 404, 'Tutor not found.') }
         return sendSuccess(res, 200, 'Tutor deleted successfully.');
     } catch (error) {
         return sendError(res, 500, 'Server error while deleting tutor.', error);
@@ -183,14 +177,14 @@ const bulkUploadTutors = async (req, res) => {
 
                 const staffId = row.staffId || row.StaffId || row.STAFFID || row.staff_id || row.Staff_ID;
                 const staffName = row.staffName || row.StaffName || row.STAFFNAME || row.staff_name || row.Staff_Name;
-                
+
                 const getNullIfEmpty = (value) => {
                     if (value === undefined || value === null || value === '' || value === 'null' || value === 'NULL') {
                         return null;
                     }
                     return String(value);
                 };
-                
+
                 const batch = getNullIfEmpty(row.batch || row.Batch || row.BATCH);
                 const department = getNullIfEmpty(row.department || row.Department || row.DEPARTMENT);
                 const category = getNullIfEmpty(row.category || row.Category || row.CATEGORY);
@@ -224,7 +218,7 @@ const bulkUploadTutors = async (req, res) => {
                     existingTutor.category = category;
                     existingTutor.section = section;
                     existingTutor.staffName = staffName;
-                    
+
                     await existingTutor.save();
                     results.updated++;
                 } else {
